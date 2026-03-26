@@ -10,9 +10,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- jsPDF + html2canvas for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════
-   DESIGN TOKENS — DARK & LIGHT
+   DESIGN TOKENS
 ═══════════════════════════════════════════════ */
 :root {
   --font-body:    'DM Sans', sans-serif;
@@ -26,25 +29,27 @@
   --radius:    10px;
   --radius-sm: 6px;
   --transition: 0.2s ease;
-  --content-px: 28px;
+  --topbar-h: 60px;
+  --nav-h: 46px;
+  --sticky-offset: calc(var(--topbar-h) + var(--nav-h));
 }
 [data-theme="dark"] {
   --bg:#0d1117;--bg2:#161b26;--surface:#1c2333;--surface2:#222c3d;
   --border:rgba(255,255,255,0.07);--border-br:rgba(255,255,255,0.13);
   --text:#e3e8f0;--text-sub:#8b96ab;--text-dim:#404d63;
   --shadow:0 2px 16px rgba(0,0,0,0.4);--shadow-sm:0 1px 4px rgba(0,0,0,0.3);
-  --topbar-bg:rgba(13,17,23,0.9);--login-bg:#0d1117;--card-hover:rgba(255,255,255,0.02);
+  --topbar-bg:rgba(13,17,23,0.97);--login-bg:#0d1117;--card-hover:rgba(255,255,255,0.02);
   --chart-grid:rgba(255,255,255,0.05);--input-bg:#1c2333;--scroll-thumb:#303a4d;
-  --highlight-bg: rgba(224,123,57,0.35); --highlight-active-bg: rgba(224,123,57,0.75);
+  --nav-bg:rgba(13,17,23,0.97);
 }
 [data-theme="light"] {
   --bg:#f4f6f9;--bg2:#eceef2;--surface:#ffffff;--surface2:#f0f2f6;
   --border:rgba(0,0,0,0.08);--border-br:rgba(0,0,0,0.14);
   --text:#1a2236;--text-sub:#5a6880;--text-dim:#a0acbe;
   --shadow:0 2px 16px rgba(0,0,0,0.08);--shadow-sm:0 1px 4px rgba(0,0,0,0.06);
-  --topbar-bg:rgba(244,246,249,0.92);--login-bg:#f4f6f9;--card-hover:rgba(0,0,0,0.02);
+  --topbar-bg:rgba(244,246,249,0.97);--login-bg:#f4f6f9;--card-hover:rgba(0,0,0,0.02);
   --chart-grid:rgba(0,0,0,0.05);--input-bg:#f0f2f6;--scroll-thumb:#c8cfd9;
-  --highlight-bg: rgba(224,123,57,0.25); --highlight-active-bg: rgba(224,123,57,0.6);
+  --nav-bg:rgba(244,246,249,0.97);
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -95,11 +100,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .login-theme-toggle{position:absolute;top:20px;right:20px}
 .login-version{position:absolute;bottom:16px;right:20px;font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim)}
 
-/* DASHBOARD SHELL */
+/* ══════════════════════════════════════════════
+   DASHBOARD SHELL — FULL WIDTH
+══════════════════════════════════════════════ */
 #dashboard{display:none;flex-direction:column;min-height:100vh}
 
-/* TOPBAR */
-.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 var(--content-px);height:60px;background:var(--topbar-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);transition:background var(--transition),border-color var(--transition)}
+/* TOPBAR — sticky */
+.topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:var(--topbar-h);background:var(--topbar-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:background var(--transition),border-color var(--transition)}
 .topbar-left{display:flex;align-items:center;gap:14px}
 .topbar-logo{width:34px;height:34px;border-radius:8px;object-fit:contain;background:var(--surface2);padding:5px;border:1px solid var(--border-br)}
 .topbar-name{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-0.01em}
@@ -110,15 +117,16 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .btn-logout{display:flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--border-br);border-radius:var(--radius-sm);color:var(--text-sub);font-size:0.78rem;font-family:var(--font-body);cursor:pointer;transition:all var(--transition)}
 .btn-logout:hover{background:rgba(217,79,79,0.08);border-color:rgba(217,79,79,0.3);color:var(--danger)}
 
-/* NAV */
-.nav{display:flex;gap:2px;padding:0 var(--content-px);border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;transition:background var(--transition),border-color var(--transition)}
-.nav-tab{display:flex;align-items:center;gap:7px;padding:13px 18px;font-size:0.82rem;font-weight:600;font-family:var(--font-body);color:var(--text-sub);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color var(--transition),border-color var(--transition);white-space:nowrap;letter-spacing:0.01em}
+/* NAV — sticky below topbar */
+.nav{position:sticky;top:var(--topbar-h);z-index:55;display:flex;gap:2px;padding:0 28px;border-bottom:1px solid var(--border);background:var(--nav-bg);overflow-x:auto;transition:background var(--transition),border-color var(--transition);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);height:var(--nav-h);align-items:center}
+.nav::-webkit-scrollbar{height:0}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:10px 16px;font-size:0.82rem;font-weight:600;font-family:var(--font-body);color:var(--text-sub);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;height:100%;transition:color var(--transition),border-color var(--transition);white-space:nowrap;letter-spacing:0.01em}
 .nav-tab:hover{color:var(--text)}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .nav-tab i{font-size:0.78rem;opacity:0.85}
 
-/* CONTENT — FULL WIDTH */
-.content{flex:1;padding:24px var(--content-px);width:100%}
+/* CONTENT — full width */
+.content{flex:1;padding:24px 28px;width:100%}
 .tab-panel{display:none;animation:fadein 0.22s ease}
 .tab-panel.active{display:block}
 @keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -144,7 +152,7 @@ option{background:var(--surface2);color:var(--text)}
 .loading-sub{font-size:0.72rem;color:var(--text-dim);font-style:italic}
 
 /* STAT CARDS */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin-bottom:20px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;transition:background var(--transition),border-color var(--transition),box-shadow 0.2s}
 .stat-card:hover{box-shadow:var(--shadow-sm);border-color:var(--border-br)}
 .stat-label{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px}
@@ -170,7 +178,7 @@ option{background:var(--surface2);color:var(--text)}
 .chart-wrap.h320{height:320px}
 
 /* KPI */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;margin-bottom:20px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:20px}
 .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:background var(--transition),border-color var(--transition),box-shadow 0.2s}
 .kpi-card:hover{box-shadow:var(--shadow-sm)}
 .kpi-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--accent));border-radius:0 0 var(--radius) var(--radius)}
@@ -181,42 +189,23 @@ option{background:var(--surface2);color:var(--text)}
 .kpi-delta.up{color:var(--accent3)}
 .kpi-delta.down{color:var(--danger)}
 
-/* TABLES */
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;transition:background var(--transition),border-color var(--transition)}
+/* TABLES — sticky header, full width */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;transition:background var(--transition),border-color var(--transition);width:100%}
 .table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
 .table-title{font-family:var(--font-display);font-size:0.92rem;font-weight:700;color:var(--text)}
-.table-header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.table-header-right{display:flex;align-items:center;gap:10px}
 .table-badge{font-family:var(--font-mono);font-size:0.68rem;color:var(--accent);background:rgba(224,123,57,0.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(224,123,57,0.2)}
+
+/* Scrollable table container with sticky headers */
+.table-scroll{overflow-x:auto;overflow-y:auto;max-height:520px}
 .data-table{width:100%;border-collapse:collapse;table-layout:auto}
-.data-table thead th{padding:9px 15px;font-family:var(--font-mono);font-size:0.65rem;font-weight:500;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.08em;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;transition:background var(--transition)}
+.data-table thead th{position:sticky;top:0;z-index:10;padding:10px 16px;font-family:var(--font-mono);font-size:0.65rem;font-weight:500;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.08em;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border-br);white-space:nowrap;transition:background var(--transition)}
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
 .data-table tbody tr:last-child{border-bottom:none}
 .data-table tbody tr:hover{background:var(--card-hover)}
-.data-table td{padding:10px 15px;font-size:0.82rem;color:var(--text);vertical-align:middle}
+.data-table td{padding:10px 16px;font-size:0.82rem;color:var(--text);vertical-align:middle}
 .data-table td.mono{font-family:var(--font-mono);font-size:0.76rem;color:var(--text-sub)}
 .no-data{text-align:center;padding:44px 20px;color:var(--text-dim);font-size:0.82rem;font-family:var(--font-mono)}
-
-/* FIND / SEARCH BAR */
-.find-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;margin-bottom:0;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0;transition:background var(--transition),border-color var(--transition)}
-.find-bar + .table-wrap{border-top-left-radius:0;border-top-right-radius:0;margin-top:0}
-.find-bar-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;display:flex;align-items:center;gap:6px}
-.find-input-wrap{position:relative;flex:1;min-width:200px;max-width:380px}
-.find-input-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.78rem;pointer-events:none}
-.find-input{width:100%;padding:7px 11px 7px 32px;background:var(--input-bg);border:1px solid var(--border-br);border-radius:var(--radius-sm);color:var(--text);font-size:0.83rem;font-family:var(--font-body);outline:none;transition:border-color 0.2s,box-shadow 0.2s}
-.find-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(224,123,57,0.15)}
-.find-count{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-sub);white-space:nowrap;min-width:80px}
-.find-count.has-results{color:var(--accent3)}
-.find-count.no-results{color:var(--danger)}
-.find-nav{display:flex;align-items:center;gap:4px}
-.find-nav-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:var(--input-bg);border:1px solid var(--border-br);border-radius:var(--radius-sm);color:var(--text-sub);font-size:0.78rem;cursor:pointer;transition:all var(--transition)}
-.find-nav-btn:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#fff}
-.find-nav-btn:disabled{opacity:0.35;cursor:not-allowed}
-.find-clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;background:transparent;border:1px solid var(--border-br);border-radius:var(--radius-sm);color:var(--text-sub);font-size:0.75rem;font-family:var(--font-body);cursor:pointer;transition:all var(--transition)}
-.find-clear-btn:hover{background:rgba(217,79,79,0.08);border-color:rgba(217,79,79,0.3);color:var(--danger)}
-
-/* Highlight for find results */
-.find-highlight{background:var(--highlight-bg);border-radius:2px;padding:0 1px}
-.find-highlight.find-active{background:var(--highlight-active-bg);outline:2px solid var(--accent);outline-offset:1px;border-radius:2px}
 
 /* WORK CARDS */
 .work-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;transition:background var(--transition),border-color var(--transition)}
@@ -267,27 +256,61 @@ option{background:var(--surface2);color:var(--text)}
 .prog-val{font-family:var(--font-mono);font-size:0.7rem;color:var(--text-sub);min-width:36px;text-align:right}
 
 /* INSIGHT CARD */
-.insight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:16px}
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
 .insight-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:background var(--transition),border-color var(--transition)}
 .insight-card-title{font-family:var(--font-display);font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:3px}
 .insight-card-sub{font-family:var(--font-mono);font-size:0.63rem;color:var(--text-sub);margin-bottom:14px;letter-spacing:0.03em}
 
-/* EXCEL DOWNLOAD BUTTON */
+/* EXCEL / PDF DOWNLOAD BUTTONS */
 .btn-excel{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;background:rgba(46,170,126,0.1);border:1px solid rgba(46,170,126,0.3);border-radius:var(--radius-sm);color:var(--accent3);font-size:0.78rem;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all var(--transition);white-space:nowrap}
 .btn-excel:hover{background:rgba(46,170,126,0.18);border-color:rgba(46,170,126,0.5)}
-.btn-excel i{font-size:0.82rem}
+.btn-pdf{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;background:rgba(217,79,79,0.1);border:1px solid rgba(217,79,79,0.3);border-radius:var(--radius-sm);color:var(--danger);font-size:0.78rem;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all var(--transition);white-space:nowrap}
+.btn-pdf:hover{background:rgba(217,79,79,0.18);border-color:rgba(217,79,79,0.5)}
 
-/* REPORT SUMMARY TABLE — progress cell wrapping */
-.prog-cell{min-width:220px;font-size:0.78rem;line-height:1.55;white-space:pre-line}
-.desc-cell{min-width:180px;font-size:0.8rem;line-height:1.5}
+/* REPORT SUMMARY TABLE */
+.prog-cell{max-width:280px;font-size:0.78rem;line-height:1.55;white-space:pre-line}
+.desc-cell{max-width:240px;font-size:0.8rem;line-height:1.5}
 
-/* Table scroll wrapper - always full width */
-.table-scroll{overflow-x:auto;width:100%}
-.table-scroll .data-table{min-width:700px}
+/* ══════════════════════════════════════════════
+   BACK TO TOP BUTTON
+══════════════════════════════════════════════ */
+#back-to-top{
+  position:fixed;bottom:28px;left:24px;z-index:200;
+  width:42px;height:42px;
+  background:var(--surface);
+  border:1px solid var(--border-br);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-sub);
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  opacity:0;pointer-events:none;
+  transition:opacity 0.3s ease,background 0.2s,color 0.2s,transform 0.2s,border-color 0.2s;
+  font-size:0.9rem;
+}
+#back-to-top.visible{opacity:1;pointer-events:auto}
+#back-to-top:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-2px)}
+#back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#back-to-top:active{transform:scale(0.95)}
 
-@media(max-width:1200px){.chart-grid{grid-template-columns:1fr}.chart-grid-3{grid-template-columns:1fr 1fr}}
-@media(max-width:900px){.chart-grid,.chart-grid-3{grid-template-columns:1fr}.chart-grid-2{grid-template-columns:1fr}.insight-grid{grid-template-columns:1fr}}
-@media(max-width:600px){:root{--content-px:14px}.work-meta{grid-template-columns:1fr 1fr}.kpi-grid{grid-template-columns:1fr 1fr}}
+/* ══════════════════════════════════════════════
+   PDF LOADING OVERLAY
+══════════════════════════════════════════════ */
+#pdf-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.65);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+#pdf-overlay.visible{display:flex}
+.pdf-modal{background:var(--surface);border:1px solid var(--border-br);border-radius:16px;padding:36px 40px;text-align:center;width:300px;box-shadow:var(--shadow)}
+.pdf-modal .spinner{margin:0 auto 16px}
+.pdf-modal-title{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.pdf-modal-sub{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-sub)}
+
+@media(max-width:1200px){.chart-grid{grid-template-columns:1fr}.chart-grid-3{grid-template-columns:1fr 1fr}.insight-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.chart-grid,.chart-grid-3,.chart-grid-2{grid-template-columns:1fr}.insight-grid{grid-template-columns:1fr}.chart-card.span2{grid-column:span 1}}
+@media(max-width:600px){.content{padding:14px 14px}.topbar{padding:0 14px}.nav{padding:0 14px}.login-card{width:calc(100% - 28px);padding:30px 22px}.work-meta{grid-template-columns:1fr 1fr}.kpi-grid{grid-template-columns:1fr 1fr}.topbar-date{display:none}}
 </style>
 </head>
 <body>
@@ -332,7 +355,7 @@ option{background:var(--surface2);color:var(--text)}
     <button class="btn-login" id="btn-login">Sign In</button>
     <div class="login-error" id="login-err"><i class="fas fa-circle-exclamation"></i> Invalid username or password</div>
     <div class="login-footer">Gulf Petrochemical Services LLC. © 2025 — All Rights Reserved</div>
-    <div class="login-version">v3.1.0</div>
+    <div class="login-version">v3.2.0</div>
   </div>
 </div>
 
@@ -357,11 +380,12 @@ option{background:var(--surface2);color:var(--text)}
     </div>
   </header>
 
+  <!-- STICKY NAV — updated order: Analytics, KPI, Report Summary, Daily Reports, Project Status, Resources -->
   <nav class="nav">
     <button class="nav-tab active" data-tab="summary"><i class="fas fa-chart-area"></i> Analytics</button>
     <button class="nav-tab" data-tab="kpi"><i class="fas fa-gauge-high"></i> KPI Dashboard</button>
-    <button class="nav-tab" data-tab="reports"><i class="fas fa-file-lines"></i> Daily Reports</button>
     <button class="nav-tab" data-tab="repsum"><i class="fas fa-table-list"></i> Report Summary</button>
+    <button class="nav-tab" data-tab="reports"><i class="fas fa-file-lines"></i> Daily Reports</button>
     <button class="nav-tab" data-tab="status"><i class="fas fa-list-check"></i> Project Status</button>
     <button class="nav-tab" data-tab="resource"><i class="fas fa-people-group"></i> Resources</button>
   </nav>
@@ -393,7 +417,7 @@ option{background:var(--surface2);color:var(--text)}
           <div class="chart-card">
             <div class="chart-card-title">Recent Activity</div>
             <div class="chart-card-sub">Latest dates in selected range</div>
-            <div style="overflow:auto;max-height:340px">
+            <div class="table-scroll" style="max-height:340px">
               <table class="data-table">
                 <thead><tr><th>Date</th><th>Foremen</th><th>Crew</th><th>Status</th></tr></thead>
                 <tbody id="recent-body"></tbody>
@@ -502,9 +526,69 @@ option{background:var(--surface2);color:var(--text)}
       </div>
     </div>
 
+    <!-- ════════ REPORT SUMMARY — single date ════════ -->
+    <div id="tab-repsum" class="tab-panel">
+      <div class="page-header"><h1 class="page-title">Report <span>Summary</span></h1></div>
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label"><i class="far fa-calendar"></i> Date</span>
+          <input type="date" id="rs-date" class="f-input" style="max-width:175px" onchange="renderRepSum()">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label"><i class="fas fa-map-pin"></i> Area</span>
+          <select id="rs-area" class="f-input" onchange="renderRepSum()">
+            <option value="all">All Areas</option>
+            <option>Safha (Block-9)</option><option>Block-62</option><option>Other</option>
+            <option>Wadi Latham (Block-9)</option><option>Infrastructure Project</option>
+            <option>Khamila (Bock-27)</option><option>FRT Project</option><option>Power Project</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label"><i class="fas fa-gears"></i> Discipline</span>
+          <select id="rs-disc" class="f-input" onchange="renderRepSum()">
+            <option value="all">All Disciplines</option>
+            <option>Piping &amp; Mechanical</option><option>Electrical</option>
+            <option>Civil</option><option>Instrumentation</option>
+            <option>OHL</option><option value="__other__">Other</option>
+          </select>
+        </div>
+      </div>
+      <div id="rs-loading" class="loading">
+        <div class="spinner"></div><div class="loading-text">Loading Report Summary</div>
+        <div class="loading-sub">Compiling work progress overview…</div>
+      </div>
+      <div id="rs-content" style="display:none">
+        <div class="stats-row" id="rs-stats"></div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Work Progress Overview</div>
+            <div class="table-header-right">
+              <div class="table-badge" id="rs-badge">0 entries</div>
+              <button class="btn-excel" onclick="exportRepSumExcel()"><i class="fas fa-file-excel"></i> Download Excel</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="rs-table">
+              <thead>
+                <tr>
+                  <th>#</th><th>Foreman Name</th><th>Foreman ID</th>
+                  <th>Area / Block</th><th>Discipline</th><th>WI No.</th>
+                  <th>Crew Size</th><th>Work Description</th><th>Progress Details</th>
+                </tr>
+              </thead>
+              <tbody id="rs-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ════════ DAILY REPORTS ════════ -->
     <div id="tab-reports" class="tab-panel">
-      <div class="page-header"><h1 class="page-title">Daily <span>Reports</span></h1></div>
+      <div class="page-header">
+        <h1 class="page-title">Daily <span>Reports</span></h1>
+        <button class="btn-pdf" id="btn-dl-pdf" onclick="downloadReportsPDF()" style="display:none"><i class="fas fa-file-pdf"></i> Download PDF</button>
+      </div>
       <div class="filters">
         <div class="filter-group">
           <span class="filter-label"><i class="far fa-calendar"></i> Date</span>
@@ -525,6 +609,7 @@ option{background:var(--surface2);color:var(--text)}
             <option value="all">All Disciplines</option>
             <option>Piping &amp; Mechanical</option><option>Electrical</option>
             <option>Civil</option><option>Instrumentation</option>
+            <option>OHL</option><option value="__other__">Other</option>
           </select>
         </div>
         <div class="filter-group">
@@ -539,89 +624,6 @@ option{background:var(--surface2);color:var(--text)}
       <div id="rep-content" style="display:none">
         <div id="day-summary-wrap"></div>
         <div id="rep-cards"></div>
-      </div>
-    </div>
-
-    <!-- ════════ REPORT SUMMARY ════════ -->
-    <div id="tab-repsum" class="tab-panel">
-      <div class="page-header"><h1 class="page-title">Report <span>Summary</span></h1></div>
-      <div class="filters">
-        <div class="filter-group">
-          <span class="filter-label"><i class="far fa-calendar"></i> Start Date</span>
-          <input type="date" id="rs-start" class="f-input" onchange="renderRepSum()">
-        </div>
-        <div class="filter-group">
-          <span class="filter-label"><i class="far fa-calendar"></i> End Date</span>
-          <input type="date" id="rs-end" class="f-input" onchange="renderRepSum()">
-        </div>
-        <div class="filter-group">
-          <span class="filter-label"><i class="fas fa-map-pin"></i> Area</span>
-          <select id="rs-area" class="f-input" onchange="renderRepSum()">
-            <option value="all">All Areas</option>
-            <option>Safha (Block-9)</option><option>Block-62</option><option>Other</option>
-            <option>Wadi Latham (Block-9)</option><option>Infrastructure Project</option>
-            <option>Khamila (Bock-27)</option><option>FRT Project</option><option>Power Project</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label"><i class="fas fa-gears"></i> Discipline</span>
-          <select id="rs-disc" class="f-input" onchange="renderRepSum()">
-            <option value="all">All Disciplines</option>
-            <option>Piping &amp; Mechanical</option><option>Electrical</option>
-            <option>Civil</option><option>Instrumentation</option>
-          </select>
-        </div>
-      </div>
-      <div id="rs-loading" class="loading">
-        <div class="spinner"></div><div class="loading-text">Loading Report Summary</div>
-        <div class="loading-sub">Compiling work progress overview…</div>
-      </div>
-      <div id="rs-content" style="display:none">
-        <div class="stats-row" id="rs-stats"></div>
-
-        <!-- FIND BAR — Report Summary -->
-        <div class="find-bar" id="rs-find-bar">
-          <span class="find-bar-label"><i class="fas fa-magnifying-glass"></i> Find</span>
-          <div class="find-input-wrap">
-            <i class="fas fa-search"></i>
-            <input type="text" class="find-input" id="rs-find-input" placeholder="Search all columns…" oninput="findInTable('rs')" autocomplete="off">
-          </div>
-          <span class="find-count" id="rs-find-count">—</span>
-          <div class="find-nav">
-            <button class="find-nav-btn" id="rs-find-prev" onclick="findNav('rs',-1)" disabled title="Previous"><i class="fas fa-chevron-up"></i></button>
-            <button class="find-nav-btn" id="rs-find-next" onclick="findNav('rs',1)" disabled title="Next"><i class="fas fa-chevron-down"></i></button>
-          </div>
-          <button class="find-clear-btn" onclick="clearFind('rs')"><i class="fas fa-xmark"></i> Clear</button>
-        </div>
-
-        <div class="table-wrap" id="rs-table-wrap">
-          <div class="table-header">
-            <div class="table-title">Work Progress Overview</div>
-            <div class="table-header-right">
-              <div class="table-badge" id="rs-badge">0 entries</div>
-              <button class="btn-excel" onclick="exportRepSumExcel()"><i class="fas fa-file-excel"></i> Download Excel</button>
-            </div>
-          </div>
-          <div class="table-scroll">
-            <table class="data-table" id="rs-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Date</th>
-                  <th>Foreman Name</th>
-                  <th>Foreman ID</th>
-                  <th>Area / Block</th>
-                  <th>Discipline</th>
-                  <th>WI No.</th>
-                  <th>Crew Size</th>
-                  <th>Work Description</th>
-                  <th>Progress Details</th>
-                </tr>
-              </thead>
-              <tbody id="rs-body"></tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -648,6 +650,7 @@ option{background:var(--surface2);color:var(--text)}
             <option value="all">All Disciplines</option>
             <option>Piping &amp; Mechanical</option><option>Electrical</option>
             <option>Civil</option><option>Instrumentation</option>
+            <option>OHL</option><option value="__other__">Other</option>
           </select>
         </div>
       </div>
@@ -709,23 +712,7 @@ option{background:var(--surface2);color:var(--text)}
           <div class="stat-card"><div class="stat-label">Equipment</div><div class="stat-value c-accent2" id="res-eq">0</div></div>
           <div class="stat-card"><div class="stat-label">Unclassified</div><div class="stat-value c-warn" id="res-nf">0</div></div>
         </div>
-
-        <!-- FIND BAR — Resources -->
-        <div class="find-bar" id="res-find-bar">
-          <span class="find-bar-label"><i class="fas fa-magnifying-glass"></i> Find</span>
-          <div class="find-input-wrap">
-            <i class="fas fa-search"></i>
-            <input type="text" class="find-input" id="res-find-input" placeholder="Search all columns…" oninput="findInTable('res')" autocomplete="off">
-          </div>
-          <span class="find-count" id="res-find-count">—</span>
-          <div class="find-nav">
-            <button class="find-nav-btn" id="res-find-prev" onclick="findNav('res',-1)" disabled title="Previous"><i class="fas fa-chevron-up"></i></button>
-            <button class="find-nav-btn" id="res-find-next" onclick="findNav('res',1)" disabled title="Next"><i class="fas fa-chevron-down"></i></button>
-          </div>
-          <button class="find-clear-btn" onclick="clearFind('res')"><i class="fas fa-xmark"></i> Clear</button>
-        </div>
-
-        <div class="table-wrap" style="margin-bottom:14px;border-top-left-radius:0;border-top-right-radius:0;" id="res-all-wrap">
+        <div class="table-wrap" style="margin-bottom:14px">
           <div class="table-header">
             <div class="table-title">All Resources</div>
             <div class="table-header-right">
@@ -740,6 +727,20 @@ option{background:var(--surface2);color:var(--text)}
 
   </div><!-- /content -->
 </div><!-- /dashboard -->
+
+<!-- Back to Top -->
+<button id="back-to-top" aria-label="Back to top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- PDF Loading Overlay -->
+<div id="pdf-overlay">
+  <div class="pdf-modal">
+    <div class="spinner"></div>
+    <div class="pdf-modal-title">Generating PDF</div>
+    <div class="pdf-modal-sub" id="pdf-progress-text">Preparing work reports…</div>
+  </div>
+</div>
 
 <script>
 /* ══════════════════════════════════════════════
@@ -769,6 +770,14 @@ function updateChartDefaults() {
 }
 
 /* ══════════════════════════════════════════════
+   BACK TO TOP
+══════════════════════════════════════════════ */
+const bttBtn = document.getElementById('back-to-top');
+window.addEventListener('scroll', () => {
+  bttBtn.classList.toggle('visible', window.scrollY > 300);
+}, { passive: true });
+
+/* ══════════════════════════════════════════════
    CONFIG & STATE
 ══════════════════════════════════════════════ */
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRMvKP4HfM5zZpM3RjdpPcX0DZA3yWpGhXt_lqpzblpbIQW7vcJswPPm8gMdmVZ366FCUwZGLCsF1fb/pub?gid=0&single=true&output=csv';
@@ -778,12 +787,9 @@ let DATA = [], charts = {}, dataReady = false;
 let lastStatusGroups = [], lastStatusDate = null;
 let lastResAllRows = [], lastResDate = null;
 let lastRepSumRows = [];
+let lastRepGroups = []; // for PDF export
 
-// Find state per namespace
-const findState = {
-  rs:  { matches: [], current: -1 },
-  res: { matches: [], current: -1 }
-};
+const KNOWN_DISCIPLINES = ['Piping & Mechanical','Electrical','Civil','Instrumentation','OHL'];
 
 const PALETTE = ['#e07b39','#3a7bd5','#2eaa7e','#d4922b','#9b5de5','#d94f4f','#17b8c4','#a3b18a'];
 const palA = (i,a=0.82) => hexA(PALETTE[i%PALETTE.length],a);
@@ -792,6 +798,15 @@ function hexA(hex,a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3
 updateChartDefaults();
 Chart.defaults.font.family = "'DM Mono', monospace";
 Chart.defaults.font.size = 11;
+
+/* ══════════════════════════════════════════════
+   DISCIPLINE FILTER HELPER
+══════════════════════════════════════════════ */
+function matchDiscipline(rowDisc, filterVal) {
+  if (filterVal === 'all') return true;
+  if (filterVal === '__other__') return !KNOWN_DISCIPLINES.includes(rowDisc);
+  return rowDisc === filterVal;
+}
 
 /* ══════════════════════════════════════════════
    AUTH
@@ -853,8 +868,7 @@ function bootDashboard() {
   setDateVal('sum-end',   yest);
   setDateVal('kpi-start', weekStart);
   setDateVal('kpi-end',   yest);
-  setDateVal('rs-start',  weekStart);
-  setDateVal('rs-end',    yest);
+  setDateVal('rs-date',   yest);
   document.getElementById('today-label').textContent = fmtDisplay(today);
   if (dataReady) { hideLoaders(); renderAll(); }
 }
@@ -918,14 +932,14 @@ function setDateVal(id,d){ document.getElementById(id).value=toKey(d); }
 function getDate(id){ const v=document.getElementById(id).value;return v?new Date(v+'T00:00:00'):null; }
 
 /* ══════════════════════════════════════════════
-   GROUP DATA — core (single date)
+   GROUP DATA
 ══════════════════════════════════════════════ */
 function groupByProject(dateKey, area='all', disc='all', wiSearch='') {
   const map={}, uniqueResources=new Set(), uniqueForemen=new Set();
   DATA.forEach(row=>{
     const rd=parseRowDate(row.DATE); if(!rd||toKey(rd)!==dateKey) return;
     if(area!=='all'&&row['AREA / BLOCK']!==area) return;
-    if(disc!=='all'&&row['DISCIPLINE']!==disc) return;
+    if(!matchDiscipline(row['DISCIPLINE']||'', disc)) return;
     if(wiSearch&&!(row['WI NO']||'').toLowerCase().includes(wiSearch.toLowerCase())) return;
     const key=`${row['FOREMAN ID']}|${row['WI NO']}|${row['AREA / BLOCK']}|${row['DISCIPLINE']}`;
     if(!map[key]) map[key]={ id:row['FOREMAN ID']||'—', crewLead:row['FOREMAN NAME']||'—', wi:row['WI NO']||'—', area:row['AREA / BLOCK']||'Unknown', discipline:row['DISCIPLINE']||'—', desc:row['DESCRIPTION OF WORK']||'', permitNo:row['PERMIT NUMBER']||'—', timeIn:row['VALIDATION TIME']||'—', timeOut:row['SUSPENSION TIME']||'—', progress:row['PROGRESS']||'', resources:new Set(), foremen:new Set(), resourceRows:[] };
@@ -944,15 +958,16 @@ function groupByProject(dateKey, area='all', disc='all', wiSearch='') {
   return { groups:Object.values(map), uniqueResources, uniqueForemen };
 }
 
-function groupByProjectRange(startKey, endKey, area='all', disc='all') {
+/* Group data over a date RANGE — for report summary (single date version) */
+function groupByProjectForDate(dateKey, area='all', disc='all') {
   const map={};
   DATA.forEach(row=>{
     const rd=parseRowDate(row.DATE); if(!rd) return;
     const dk=toKey(rd);
-    if(dk<startKey||dk>endKey) return;
+    if(dk!==dateKey) return;
     if(area!=='all'&&row['AREA / BLOCK']!==area) return;
-    if(disc!=='all'&&row['DISCIPLINE']!==disc) return;
-    const key=`${dk}|${row['FOREMAN ID']}|${row['WI NO']}|${row['AREA / BLOCK']}|${row['DISCIPLINE']}`;
+    if(!matchDiscipline(row['DISCIPLINE']||'', disc)) return;
+    const key=`${row['FOREMAN ID']}|${row['WI NO']}|${row['AREA / BLOCK']}|${row['DISCIPLINE']}`;
     if(!map[key]) map[key]={
       date: dk, dateObj: rd,
       id:row['FOREMAN ID']||'—', crewLead:row['FOREMAN NAME']||'—',
@@ -967,7 +982,7 @@ function groupByProjectRange(startKey, endKey, area='all', disc='all') {
     if(row['PROGRESS']&&!g.progress) g.progress=row['PROGRESS'];
     if(row['RESOURCE ID']) g.resources.add(row['RESOURCE ID']);
   });
-  return Object.values(map).sort((a,b)=>b.date.localeCompare(a.date));
+  return Object.values(map).sort((a,b)=>a.area.localeCompare(b.area));
 }
 
 /* ══════════════════════════════════════════════
@@ -1178,9 +1193,12 @@ function renderReports(){
   if(!dataReady) return;
   const d=getDate('r-date'), area=document.getElementById('r-area').value;
   const disc=document.getElementById('r-disc').value, wi=document.getElementById('r-wi').value.trim();
-  if(!d) return;
+  const pdfBtn=document.getElementById('btn-dl-pdf');
+  if(!d){ pdfBtn.style.display='none'; return; }
   const { groups, uniqueResources, uniqueForemen }=groupByProject(toKey(d),area,disc,wi);
+  lastRepGroups = groups;
   const dayWrap=document.getElementById('day-summary-wrap'), cards=document.getElementById('rep-cards');
+  pdfBtn.style.display = groups.length ? 'inline-flex' : 'none';
   if(!groups.length){ dayWrap.innerHTML=''; cards.innerHTML='<div class="no-data">No records found for the selected filters.</div>'; return; }
   const areaSummary={};
   groups.forEach(g=>{
@@ -1201,7 +1219,7 @@ function renderReports(){
     const mp=g.resourceRows.filter(r=>r.type.toLowerCase()==='manpower').length;
     const eq=g.resourceRows.filter(r=>r.type.toLowerCase()==='equipment').length;
     const progressLines=g.progress.replace(/"/g,'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const idx=l.lastIndexOf('='); return idx!==-1?{desc:l.slice(0,idx).trim(),qty:l.slice(idx+1).trim()}:{desc:l,qty:'—'}; });
-    html+=`<div class="work-card">
+    html+=`<div class="work-card" id="work-report-${i}">
       <div class="work-card-head"><span class="work-card-num"><i class="fas fa-clipboard-list"></i> Work Report #${i+1}</span><span class="work-card-wi">WI: ${escHtml(g.wi)}</span></div>
       ${g.desc?`<div class="work-desc">${escHtml(g.desc)}</div>`:''}
       <div class="work-meta">
@@ -1229,32 +1247,270 @@ function renderReports(){
 }
 
 /* ══════════════════════════════════════════════
-   REPORT SUMMARY TAB
+   PDF EXPORT — Daily Reports
+══════════════════════════════════════════════ */
+async function downloadReportsPDF() {
+  if (!lastRepGroups.length) { alert('No reports to export.'); return; }
+  const overlay = document.getElementById('pdf-overlay');
+  const progressTxt = document.getElementById('pdf-progress-text');
+  overlay.classList.add('visible');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 36;
+    const isDark = currentTheme === 'dark';
+
+    // Colors
+    const bg = isDark ? '#1c2333' : '#ffffff';
+    const textMain = isDark ? '#e3e8f0' : '#1a2236';
+    const textSub = isDark ? '#8b96ab' : '#5a6880';
+    const borderCol = isDark ? '#2a3a55' : '#e0e4ec';
+    const accentOrange = '#e07b39';
+    const accentBlue = '#3a7bd5';
+    const accentGreen = '#2eaa7e';
+    const headerBg = isDark ? '#222c3d' : '#f0f2f6';
+
+    const dateVal = getDate('r-date');
+    const dateStr = dateVal ? fmtDisplay(dateVal) : '—';
+
+    for (let i = 0; i < lastRepGroups.length; i++) {
+      const g = lastRepGroups[i];
+      progressTxt.textContent = `Rendering report ${i + 1} of ${lastRepGroups.length}…`;
+      if (i > 0) pdf.addPage();
+
+      let y = margin;
+
+      // ── Header band ──
+      pdf.setFillColor(isDark ? 28 : 244, isDark ? 35 : 246, isDark ? 51 : 249);
+      pdf.rect(0, 0, pageW, 72, 'F');
+      // Orange accent line
+      pdf.setFillColor(224, 123, 57);
+      pdf.rect(0, 0, 4, 72, 'F');
+
+      // Company logo area
+      pdf.setFontSize(15);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
+      pdf.text('Gulf Petrochemical Services', margin + 6, 26);
+      pdf.setFontSize(7.5);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
+      pdf.text('OXY OMAN · CONTRACT #24000110790', margin + 6, 38);
+
+      // Report badge (right side)
+      const badgeText = `Work Report #${i + 1}`;
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(224, 123, 57);
+      const badgeX = pageW - margin - pdf.getTextWidth(badgeText) - 16;
+      pdf.setFillColor(224, 123, 57, 0.12);
+      pdf.roundedRect(badgeX - 8, 10, pdf.getTextWidth(badgeText) + 16, 18, 3, 3, 'F');
+      pdf.text(badgeText, badgeX, 22);
+
+      // Date
+      pdf.setFontSize(7.5);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
+      pdf.text(`Date: ${dateStr}`, pageW - margin - pdf.getTextWidth(`Date: ${dateStr}`), 38);
+
+      // WI label
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
+      pdf.text(`WI: ${g.wi}`, margin + 6, 58);
+      y = 88;
+
+      // ── Description box ──
+      if (g.desc) {
+        pdf.setFillColor(isDark ? 22 : 248, isDark ? 27 : 249, isDark ? 38 : 252);
+        pdf.setDrawColor(isDark ? 42 : 224, isDark ? 58 : 228, isDark ? 85 : 236);
+        pdf.roundedRect(margin, y, pageW - margin * 2, 0, 3, 3);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
+        const descLines = pdf.splitTextToSize(g.desc, pageW - margin * 2 - 16);
+        const descH = descLines.length * 11 + 16;
+        pdf.setFillColor(isDark ? 22 : 248, isDark ? 27 : 249, isDark ? 38 : 252);
+        pdf.roundedRect(margin, y, pageW - margin * 2, descH, 3, 3, 'FD');
+        pdf.text(descLines, margin + 8, y + 13);
+        y += descH + 10;
+      }
+
+      // ── Meta grid ──
+      const metaItems = [
+        ['Foreman ID', g.id],
+        ['Foreman Name', g.crewLead],
+        ['Area / Block', g.area],
+        ['Discipline', g.discipline],
+        ['Permit No.', g.permitNo],
+        ['Work Hours', `${g.timeIn} → ${g.timeOut}`],
+        ['Manpower', String(g.resourceRows.filter(r=>r.type.toLowerCase()==='manpower').length)],
+        ['Equipment', String(g.resourceRows.filter(r=>r.type.toLowerCase()==='equipment').length)],
+        ['Crew Size', String(g.resources.size)],
+      ];
+      const cols = 3;
+      const cellW = (pageW - margin * 2) / cols;
+      const cellH = 34;
+      metaItems.forEach((item, idx) => {
+        const col = idx % cols, row = Math.floor(idx / cols);
+        const cx = margin + col * cellW, cy = y + row * cellH;
+        pdf.setFillColor(isDark ? 34 : 240, isDark ? 44 : 242, isDark ? 61 : 246);
+        pdf.setDrawColor(isDark ? 42 : 224, isDark ? 58 : 228, isDark ? 85 : 236);
+        pdf.rect(cx, cy, cellW, cellH, 'FD');
+        pdf.setFontSize(6.5);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(isDark ? 64 : 160, isDark ? 77 : 172, isDark ? 99 : 190);
+        pdf.text(item[0].toUpperCase(), cx + 6, cy + 11);
+        pdf.setFontSize(8.5);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
+        const valLines = pdf.splitTextToSize(item[1], cellW - 12);
+        pdf.text(valLines[0], cx + 6, cy + 24);
+      });
+      y += Math.ceil(metaItems.length / cols) * cellH + 14;
+
+      // ── Progress section ──
+      const progressLines = g.progress.replace(/"/g,'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const idx=l.lastIndexOf('='); return idx!==-1?[l.slice(0,idx).trim(),l.slice(idx+1).trim()]:[l,'—']; });
+      if (progressLines.length) {
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
+        pdf.text('PROGRESS DETAILS', margin, y + 6);
+        pdf.setDrawColor(isDark ? 42 : 200, isDark ? 58 : 210, isDark ? 85 : 230);
+        pdf.line(margin + pdf.getTextWidth('PROGRESS DETAILS') + 6, y + 4, pageW - margin, y + 4);
+        y += 14;
+        // Table header
+        const pColW = [(pageW - margin * 2) * 0.08, (pageW - margin * 2) * 0.72, (pageW - margin * 2) * 0.2];
+        const pHeaders = ['#', 'Description', 'Quantity'];
+        pHeaders.forEach((h, hi) => {
+          const hx = margin + pColW.slice(0, hi).reduce((a,b)=>a+b, 0);
+          pdf.setFillColor(isDark ? 34 : 240, isDark ? 44 : 242, isDark ? 61 : 246);
+          pdf.rect(hx, y, pColW[hi], 16, 'F');
+          pdf.setFontSize(6.5);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
+          pdf.text(h, hx + 4, y + 10);
+        });
+        y += 16;
+        progressLines.forEach((pl, pi) => {
+          const rowH = 15;
+          if (pi % 2 === 0) {
+            pdf.setFillColor(isDark ? 22 : 250, isDark ? 27 : 251, isDark ? 38 : 253);
+            pdf.rect(margin, y, pageW - margin * 2, rowH, 'F');
+          }
+          pdf.setFontSize(7.5);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
+          pdf.text(String(pi + 1), margin + 4, y + 10);
+          const descTxt = pdf.splitTextToSize(pl[0], pColW[1] - 8);
+          pdf.text(descTxt[0], margin + pColW[0] + 4, y + 10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(224, 123, 57);
+          pdf.text(pl[1], margin + pColW[0] + pColW[1] + 4, y + 10);
+          y += rowH;
+        });
+        y += 8;
+      }
+
+      // ── Resources section ──
+      if (g.resourceRows.length) {
+        if (y > pageH - 120) { pdf.addPage(); y = margin; }
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
+        pdf.text('RESOURCES', margin, y + 6);
+        pdf.setDrawColor(isDark ? 42 : 200, isDark ? 58 : 210, isDark ? 85 : 230);
+        pdf.line(margin + pdf.getTextWidth('RESOURCES') + 6, y + 4, pageW - margin, y + 4);
+        y += 14;
+        const rColW = [(pageW-margin*2)*0.06,(pageW-margin*2)*0.18,(pageW-margin*2)*0.28,(pageW-margin*2)*0.16,(pageW-margin*2)*0.16,(pageW-margin*2)*0.16];
+        const rHeaders = ['#','Resource ID','Designation','Type','Time-In','Time-Out'];
+        rHeaders.forEach((h, hi) => {
+          const hx = margin + rColW.slice(0,hi).reduce((a,b)=>a+b,0);
+          pdf.setFillColor(isDark?34:240,isDark?44:242,isDark?61:246);
+          pdf.rect(hx, y, rColW[hi], 16, 'F');
+          pdf.setFontSize(6.5);
+          pdf.setFont('helvetica','bold');
+          pdf.setTextColor(isDark?139:90,isDark?150:104,isDark?171:128);
+          pdf.text(h, hx+4, y+10);
+        });
+        y += 16;
+        g.resourceRows.forEach((r, ri) => {
+          if (y > pageH - 40) { pdf.addPage(); y = margin; }
+          const rowH = 14;
+          if (ri%2===0) {
+            pdf.setFillColor(isDark?22:250,isDark?27:251,isDark?38:253);
+            pdf.rect(margin, y, pageW-margin*2, rowH, 'F');
+          }
+          const vals = [String(ri+1), r.id, r.desig, r.type||'—', r.tin, r.tout];
+          const typeColors = { manpower:[46,170,126], equipment:[58,123,213] };
+          vals.forEach((v, vi) => {
+            const vx = margin + rColW.slice(0,vi).reduce((a,b)=>a+b,0);
+            pdf.setFontSize(7.5);
+            pdf.setFont('helvetica','normal');
+            if (vi === 3) {
+              const tl = v.toLowerCase();
+              const tc = typeColors[tl] || [212,146,43];
+              pdf.setTextColor(...tc);
+            } else {
+              pdf.setTextColor(isDark?227:26,isDark?232:34,isDark?240:54);
+            }
+            pdf.text(v, vx+4, y+9);
+          });
+          y += rowH;
+        });
+      }
+
+      // ── Footer ──
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica','normal');
+      pdf.setTextColor(isDark?64:160,isDark?77:172,isDark?99:190);
+      pdf.text(`Gulf Petrochemical Services LLC · Generated ${new Date().toLocaleDateString()} · Page ${i+1} of ${lastRepGroups.length}`, margin, pageH - 18);
+      pdf.setFillColor(224,123,57);
+      pdf.rect(0, pageH - 4, pageW, 4, 'F');
+    }
+
+    const fileName = `GPS_DailyReports_${getDate('r-date') ? toKey(getDate('r-date')) : 'export'}.pdf`;
+    pdf.save(fileName);
+  } catch(err) {
+    console.error('PDF error:', err);
+    alert('PDF generation failed. Please try again.');
+  } finally {
+    overlay.classList.remove('visible');
+  }
+}
+
+/* ══════════════════════════════════════════════
+   REPORT SUMMARY — single date
 ══════════════════════════════════════════════ */
 function renderRepSum(){
   if(!dataReady) return;
-  const start=getDate('rs-start'), end=getDate('rs-end');
-  const area=document.getElementById('rs-area').value;
-  const disc=document.getElementById('rs-disc').value;
-  if(!start||!end||start>end){ document.getElementById('rs-body').innerHTML='<tr><td colspan="10" class="no-data">Please select a valid date range.</td></tr>'; return; }
+  const d = getDate('rs-date');
+  const area = document.getElementById('rs-area').value;
+  const disc = document.getElementById('rs-disc').value;
+  if(!d){
+    document.getElementById('rs-body').innerHTML='<tr><td colspan="9" class="no-data">Please select a date.</td></tr>';
+    return;
+  }
 
-  const rows=groupByProjectRange(toKey(start), toKey(end), area, disc);
+  const rows = groupByProjectForDate(toKey(d), area, disc);
   lastRepSumRows = rows;
 
-  const uniqueForemen=new Set(rows.map(r=>r.id)).size;
-  const uniqueAreas=new Set(rows.map(r=>r.area)).size;
-  const totalCrew=rows.reduce((s,r)=>s+r.resources.size, 0);
+  const uniqueForemen = new Set(rows.map(r=>r.id)).size;
+  const uniqueAreas = new Set(rows.map(r=>r.area)).size;
+  const totalCrew = rows.reduce((s,r)=>s+r.resources.size, 0);
   document.getElementById('rs-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Work Groups</div><div class="stat-value c-accent">${rows.length}</div></div>
     <div class="stat-card"><div class="stat-label">Foremen</div><div class="stat-value">${uniqueForemen}</div></div>
     <div class="stat-card"><div class="stat-label">Areas</div><div class="stat-value c-accent2">${uniqueAreas}</div></div>
-    <div class="stat-card"><div class="stat-label">Total Crew (sum)</div><div class="stat-value c-accent3">${totalCrew}</div></div>`;
+    <div class="stat-card"><div class="stat-label">Total Crew</div><div class="stat-value c-accent3">${totalCrew}</div></div>`;
 
   document.getElementById('rs-badge').textContent = `${rows.length} entries`;
 
   if(!rows.length){
-    document.getElementById('rs-body').innerHTML='<tr><td colspan="10" class="no-data">No records found for the selected filters.</td></tr>';
-    clearFind('rs');
+    document.getElementById('rs-body').innerHTML='<tr><td colspan="9" class="no-data">No records found for the selected filters.</td></tr>';
     return;
   }
 
@@ -1262,7 +1518,6 @@ function renderRepSum(){
     const progressText = formatProgressFlat(g.progress);
     return `<tr>
       <td class="mono">${i+1}</td>
-      <td class="mono">${escHtml(g.date)}</td>
       <td>${escHtml(g.crewLead)}</td>
       <td class="mono">${escHtml(g.id)}</td>
       <td>${escHtml(g.area)}</td>
@@ -1273,11 +1528,6 @@ function renderRepSum(){
       <td class="prog-cell">${escHtml(progressText||'—')}</td>
     </tr>`;
   }).join('');
-
-  // Re-run find if there's an active search
-  const findVal = document.getElementById('rs-find-input').value;
-  if(findVal.trim()) findInTable('rs');
-  else clearFind('rs');
 }
 
 function formatProgressFlat(progress){
@@ -1338,205 +1588,39 @@ function renderResource(){
   document.getElementById('res-eq').textContent=eq.length;
   document.getElementById('res-nf').textContent=nf.length;
   document.getElementById('res-all-badge').textContent=all.length;
-
-  function mkT(title,rows,bc,bl,tbodyId){
+  function mkT(title,rows,bc,bl){
     return `<div class="table-wrap" style="margin-bottom:14px"><div class="table-header"><div class="table-title">${title}</div><div class="table-badge">${rows.length}</div></div>
-    ${rows.length?`<div class="table-scroll"><table class="data-table"><thead><tr><th>#</th><th>Resource ID</th><th>Designation</th><th>Type</th><th>WI No.</th><th>Area</th><th>Foreman</th></tr></thead><tbody id="${tbodyId}">
+    ${rows.length?`<div class="table-scroll"><table class="data-table"><thead><tr><th>#</th><th>Resource ID</th><th>Designation</th><th>Type</th><th>WI No.</th><th>Area</th><th>Foreman</th></tr></thead><tbody>
     ${rows.map((r,i)=>`<tr><td class="mono">${i+1}</td><td class="mono">${escHtml(r.id)}</td><td>${escHtml(r.desig)}</td><td><span class="badge ${bc}">${bl}</span></td><td class="mono">${escHtml(r.wi)}</td><td>${escHtml(r.area)}</td><td>${escHtml(r.foreman)}</td></tr>`).join('')}
     </tbody></table></div>`:'<div class="no-data">No records found.</div>'}</div>`;
   }
-
-  document.getElementById('res-tables').innerHTML=
-    mkT('Manpower',mp,'badge-mp','Manpower','res-mp-body')+
-    mkT('Equipment',eq,'badge-eq','Equipment','res-eq-body')+
-    mkT('Unclassified',nf,'badge-nf','Other','res-nf-body');
-
-  // Re-run find if active
-  const findVal = document.getElementById('res-find-input').value;
-  if(findVal.trim()) findInTable('res');
-  else clearFind('res');
+  document.getElementById('res-tables').innerHTML=mkT('Manpower',mp,'badge-mp','Manpower')+mkT('Equipment',eq,'badge-eq','Equipment')+mkT('Unclassified',nf,'badge-nf','Other');
 }
-
-/* ══════════════════════════════════════════════
-   FIND IN TABLE — universal engine
-   ns = 'rs' | 'res'
-══════════════════════════════════════════════ */
-function getSearchTargetBodies(ns) {
-  if(ns === 'rs') {
-    const b = document.getElementById('rs-body');
-    return b ? [b] : [];
-  }
-  if(ns === 'res') {
-    // Search across all three resource tables
-    return ['res-mp-body','res-eq-body','res-nf-body']
-      .map(id => document.getElementById(id))
-      .filter(Boolean);
-  }
-  return [];
-}
-
-function findInTable(ns) {
-  const input = document.getElementById(`${ns}-find-input`);
-  const query = (input ? input.value : '').trim().toLowerCase();
-  const state = findState[ns];
-
-  // Clear previous highlights
-  getSearchTargetBodies(ns).forEach(tbody => {
-    tbody.querySelectorAll('.find-highlight').forEach(span => {
-      span.outerHTML = span.textContent;
-    });
-    // Normalize — merge adjacent text nodes
-    tbody.normalize();
-  });
-
-  if(!query) {
-    state.matches = [];
-    state.current = -1;
-    updateFindUI(ns);
-    return;
-  }
-
-  // Walk all text nodes in all target bodies and highlight
-  const allHighlights = [];
-  getSearchTargetBodies(ns).forEach(tbody => {
-    highlightInNode(tbody, query, allHighlights);
-  });
-
-  state.matches = allHighlights;
-  state.current = allHighlights.length > 0 ? 0 : -1;
-  updateFindUI(ns);
-  scrollToMatch(ns);
-}
-
-function highlightInNode(node, query, collector) {
-  if(node.nodeType === Node.TEXT_NODE) {
-    const text = node.textContent;
-    const lower = text.toLowerCase();
-    let lastIndex = 0, idx;
-    const frag = document.createDocumentFragment();
-    let found = false;
-    while((idx = lower.indexOf(query, lastIndex)) !== -1) {
-      if(idx > lastIndex) frag.appendChild(document.createTextNode(text.slice(lastIndex, idx)));
-      const span = document.createElement('span');
-      span.className = 'find-highlight';
-      span.textContent = text.slice(idx, idx + query.length);
-      collector.push(span);
-      frag.appendChild(span);
-      lastIndex = idx + query.length;
-      found = true;
-    }
-    if(found) {
-      if(lastIndex < text.length) frag.appendChild(document.createTextNode(text.slice(lastIndex)));
-      node.parentNode.replaceChild(frag, node);
-    }
-  } else if(node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
-    // Clone childNodes list since we may modify DOM during iteration
-    Array.from(node.childNodes).forEach(child => highlightInNode(child, query, collector));
-  }
-}
-
-function findNav(ns, dir) {
-  const state = findState[ns];
-  if(!state.matches.length) return;
-  // Remove active from current
-  if(state.current >= 0 && state.current < state.matches.length) {
-    state.matches[state.current].classList.remove('find-active');
-  }
-  state.current = (state.current + dir + state.matches.length) % state.matches.length;
-  updateFindUI(ns);
-  scrollToMatch(ns);
-}
-
-function scrollToMatch(ns) {
-  const state = findState[ns];
-  if(state.current < 0 || !state.matches.length) return;
-  // Remove active class from all
-  state.matches.forEach(m => m.classList.remove('find-active'));
-  const el = state.matches[state.current];
-  if(el) {
-    el.classList.add('find-active');
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-}
-
-function updateFindUI(ns) {
-  const state = findState[ns];
-  const countEl = document.getElementById(`${ns}-find-count`);
-  const prevBtn = document.getElementById(`${ns}-find-prev`);
-  const nextBtn = document.getElementById(`${ns}-find-next`);
-  const total = state.matches.length;
-  const cur = state.current;
-
-  if(total === 0) {
-    const inputVal = (document.getElementById(`${ns}-find-input`).value || '').trim();
-    if(inputVal) {
-      countEl.textContent = 'No results';
-      countEl.className = 'find-count no-results';
-    } else {
-      countEl.textContent = '—';
-      countEl.className = 'find-count';
-    }
-    prevBtn.disabled = true;
-    nextBtn.disabled = true;
-  } else {
-    countEl.textContent = `${cur + 1} of ${total}`;
-    countEl.className = 'find-count has-results';
-    prevBtn.disabled = false;
-    nextBtn.disabled = false;
-  }
-}
-
-function clearFind(ns) {
-  const input = document.getElementById(`${ns}-find-input`);
-  if(input) input.value = '';
-  // Clear highlights
-  getSearchTargetBodies(ns).forEach(tbody => {
-    tbody.querySelectorAll('.find-highlight').forEach(span => {
-      span.outerHTML = span.textContent;
-    });
-    tbody.normalize();
-  });
-  findState[ns].matches = [];
-  findState[ns].current = -1;
-  updateFindUI(ns);
-}
-
-// Keyboard shortcut: Enter to go next, Shift+Enter to go prev
-document.addEventListener('keydown', e => {
-  ['rs','res'].forEach(ns => {
-    const inp = document.getElementById(`${ns}-find-input`);
-    if(document.activeElement === inp) {
-      if(e.key === 'Enter') {
-        e.preventDefault();
-        if(e.shiftKey) findNav(ns, -1);
-        else findNav(ns, 1);
-      }
-      if(e.key === 'Escape') { clearFind(ns); inp.blur(); }
-    }
-  });
-});
 
 /* ══════════════════════════════════════════════
    EXCEL EXPORTS
 ══════════════════════════════════════════════ */
-function downloadWorkbook(wb, filename){ XLSX.writeFile(wb, filename); }
+function downloadWorkbook(wb, filename){
+  XLSX.writeFile(wb, filename);
+}
 
 function exportRepSumExcel(){
   if(!lastRepSumRows.length){ alert('No data to export.'); return; }
-  const start = document.getElementById('rs-start').value;
-  const end   = document.getElementById('rs-end').value;
+  const dateStr = document.getElementById('rs-date').value;
   const wsData = [
-    ['#','Date','Foreman Name','Foreman ID','Area / Block','Discipline','WI No.','Crew Size','Work Description','Progress Details'],
+    ['#','Foreman Name','Foreman ID','Area / Block','Discipline','WI No.','Crew Size','Work Description','Progress Details'],
     ...lastRepSumRows.map((g,i)=>[
-      i+1, g.date, g.crewLead, g.id, g.area, g.discipline,
-      g.wi, g.resources.size, g.desc || '—', formatProgressFlat(g.progress) || '—'
+      i+1, g.crewLead, g.id, g.area, g.discipline,
+      g.wi, g.resources.size,
+      g.desc || '—',
+      formatProgressFlat(g.progress) || '—'
     ])
   ];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=[{wch:4},{wch:12},{wch:22},{wch:14},{wch:22},{wch:20},{wch:16},{wch:10},{wch:40},{wch:50}];
+  ws['!cols']=[{wch:4},{wch:22},{wch:14},{wch:22},{wch:20},{wch:16},{wch:10},{wch:40},{wch:50}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Report Summary');
-  downloadWorkbook(wb, `GPS_ReportSummary_${start}_${end}.xlsx`);
+  downloadWorkbook(wb, `GPS_ReportSummary_${dateStr}.xlsx`);
 }
 
 function exportStatusExcel(){
@@ -1567,11 +1651,11 @@ function exportResourceExcel(){
   const wsAll = XLSX.utils.aoa_to_sheet(allData);
   wsAll['!cols']=[{wch:4},{wch:14},{wch:22},{wch:12},{wch:16},{wch:22},{wch:22},{wch:20}];
   const mpRows = lastResAllRows.filter(r=>r.type.toLowerCase()==='manpower');
-  const mpData = [['#','Resource ID','Designation','WI No.','Area','Foreman'],...mpRows.map((r,i)=>[i+1, r.id, r.desig, r.wi, r.area, r.foreman])];
+  const mpData = [['#','Resource ID','Designation','WI No.','Area','Foreman'],...mpRows.map((r,i)=>[i+1,r.id,r.desig,r.wi,r.area,r.foreman])];
   const wsMp = XLSX.utils.aoa_to_sheet(mpData);
   wsMp['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:22}];
   const eqRows = lastResAllRows.filter(r=>r.type.toLowerCase()==='equipment');
-  const eqData = [['#','Resource ID','Designation','WI No.','Area','Foreman'],...eqRows.map((r,i)=>[i+1, r.id, r.desig, r.wi, r.area, r.foreman])];
+  const eqData = [['#','Resource ID','Designation','WI No.','Area','Foreman'],...eqRows.map((r,i)=>[i+1,r.id,r.desig,r.wi,r.area,r.foreman])];
   const wsEq = XLSX.utils.aoa_to_sheet(eqData);
   wsEq['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:22}];
   const wb = XLSX.utils.book_new();
