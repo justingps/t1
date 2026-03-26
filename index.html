@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- jsPDF + html2canvas for PDF export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -100,12 +99,250 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .login-theme-toggle{position:absolute;top:20px;right:20px}
 .login-version{position:absolute;bottom:16px;right:20px;font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim)}
 
+/* ═══════════════════════════════════════════
+   WEATHER WIDGET
+═══════════════════════════════════════════ */
+.wx-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-br);
+  border-radius: 12px;
+  padding: 7px 10px;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  flex-shrink: 0;
+}
+.wx-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(224,123,57,0.04) 0%, rgba(58,123,213,0.04) 100%);
+  pointer-events: none;
+}
+.wx-site {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px 0 0;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.wx-site:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+.wx-site-name {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.wx-icon-wrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+/* Animated SVG weather icons */
+.wx-sun {
+  width: 28px; height: 28px;
+  position: relative;
+}
+.wx-sun-core {
+  width: 12px; height: 12px;
+  background: #f59e0b;
+  border-radius: 50%;
+  position: absolute;
+  top: 8px; left: 8px;
+  box-shadow: 0 0 6px rgba(245,158,11,0.5);
+  animation: wx-pulse 2.5s ease-in-out infinite;
+}
+@keyframes wx-pulse {
+  0%,100%{transform:scale(1);box-shadow:0 0 6px rgba(245,158,11,0.5)}
+  50%{transform:scale(1.12);box-shadow:0 0 10px rgba(245,158,11,0.8)}
+}
+.wx-ray {
+  position: absolute;
+  width: 3px; height: 5px;
+  background: #f59e0b;
+  border-radius: 2px;
+  top: 50%; left: 50%;
+  transform-origin: 0 -9px;
+  animation: wx-spin-rays 8s linear infinite;
+  opacity: 0.8;
+}
+@keyframes wx-spin-rays { to { rotate: 360deg; } }
+
+/* Hot sun (high temp) */
+.wx-hot-glow {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,146,60,0.3) 0%, transparent 70%);
+  animation: wx-pulse 2s ease-in-out infinite;
+}
+
+/* Cloud */
+.wx-cloud-svg {
+  animation: wx-float 3.5s ease-in-out infinite;
+}
+@keyframes wx-float {
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-2px)}
+}
+
+/* Rain drops */
+.wx-drop {
+  animation: wx-rain 1.2s linear infinite;
+  opacity: 0;
+}
+.wx-drop:nth-child(1){animation-delay:0s}
+.wx-drop:nth-child(2){animation-delay:0.4s}
+.wx-drop:nth-child(3){animation-delay:0.8s}
+@keyframes wx-rain {
+  0%{opacity:0;transform:translateY(-4px)}
+  30%{opacity:1}
+  100%{opacity:0;transform:translateY(6px)}
+}
+
+/* Thermometer icon anim */
+.wx-therm-fill {
+  animation: wx-therm 3s ease-in-out infinite;
+  transform-origin: bottom;
+}
+@keyframes wx-therm {
+  0%,100%{transform:scaleY(1)}
+  50%{transform:scaleY(1.08)}
+}
+
+.wx-temp-val {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+  white-space: nowrap;
+}
+.wx-temp-hi { color: #e07b39; }
+.wx-temp-lo { color: var(--accent2); font-size: 0.65rem; }
+.wx-mini-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.wx-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+.wx-stat-row i {
+  font-size: 0.52rem;
+  width: 8px;
+  text-align: center;
+  color: var(--accent2);
+}
+.wx-stat-row.rain i { color: #3a7bd5; }
+.wx-stat-row.wind i { color: var(--accent3); }
+.wx-loading-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: wx-blink 1.2s ease-in-out infinite;
+}
+@keyframes wx-blink {
+  0%,100%{opacity:0.3;transform:scale(0.8)}
+  50%{opacity:1;transform:scale(1.2)}
+}
+.wx-sep {
+  width: 1px;
+  height: 36px;
+  background: var(--border-br);
+  flex-shrink: 0;
+}
+.wx-label-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+.wx-dot-live {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent3);
+  box-shadow: 0 0 4px var(--accent3);
+  animation: wx-live 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes wx-live {
+  0%,100%{opacity:1}50%{opacity:0.4}
+}
+/* Tomorrow toggle */
+.wx-day-toggle {
+  display: flex;
+  gap: 2px;
+  margin-left: 4px;
+}
+.wx-day-btn {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-br);
+  background: transparent;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.wx-day-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.wx-day-btn:not(.active):hover {
+  background: var(--surface2);
+}
+/* Condition text */
+.wx-cond {
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+/* Page header flex layout */
+.page-header-wx {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.page-header-wx .page-title {
+  flex-shrink: 0;
+}
+
 /* ══════════════════════════════════════════════
    DASHBOARD SHELL — FULL WIDTH
 ══════════════════════════════════════════════ */
 #dashboard{display:none;flex-direction:column;min-height:100vh}
 
-/* TOPBAR — sticky */
+/* TOPBAR */
 .topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:var(--topbar-h);background:var(--topbar-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:background var(--transition),border-color var(--transition)}
 .topbar-left{display:flex;align-items:center;gap:14px}
 .topbar-logo{width:34px;height:34px;border-radius:8px;object-fit:contain;background:var(--surface2);padding:5px;border:1px solid var(--border-br)}
@@ -117,7 +354,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .btn-logout{display:flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--border-br);border-radius:var(--radius-sm);color:var(--text-sub);font-size:0.78rem;font-family:var(--font-body);cursor:pointer;transition:all var(--transition)}
 .btn-logout:hover{background:rgba(217,79,79,0.08);border-color:rgba(217,79,79,0.3);color:var(--danger)}
 
-/* NAV — sticky below topbar */
+/* NAV */
 .nav{position:sticky;top:var(--topbar-h);z-index:55;display:flex;gap:2px;padding:0 28px;border-bottom:1px solid var(--border);background:var(--nav-bg);overflow-x:auto;transition:background var(--transition),border-color var(--transition);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);height:var(--nav-h);align-items:center}
 .nav::-webkit-scrollbar{height:0}
 .nav-tab{display:flex;align-items:center;gap:7px;padding:10px 16px;font-size:0.82rem;font-weight:600;font-family:var(--font-body);color:var(--text-sub);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;height:100%;transition:color var(--transition),border-color var(--transition);white-space:nowrap;letter-spacing:0.01em}
@@ -125,7 +362,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .nav-tab i{font-size:0.78rem;opacity:0.85}
 
-/* CONTENT — full width */
+/* CONTENT */
 .content{flex:1;padding:24px 28px;width:100%}
 .tab-panel{display:none;animation:fadein 0.22s ease}
 .tab-panel.active{display:block}
@@ -189,14 +426,12 @@ option{background:var(--surface2);color:var(--text)}
 .kpi-delta.up{color:var(--accent3)}
 .kpi-delta.down{color:var(--danger)}
 
-/* TABLES — sticky header, full width */
+/* TABLES */
 .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;transition:background var(--transition),border-color var(--transition);width:100%}
 .table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
 .table-title{font-family:var(--font-display);font-size:0.92rem;font-weight:700;color:var(--text)}
 .table-header-right{display:flex;align-items:center;gap:10px}
 .table-badge{font-family:var(--font-mono);font-size:0.68rem;color:var(--accent);background:rgba(224,123,57,0.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(224,123,57,0.2)}
-
-/* Scrollable table container with sticky headers */
 .table-scroll{overflow-x:auto;overflow-y:auto;max-height:429px}
 .data-table{width:100%;border-collapse:collapse;table-layout:auto}
 .data-table thead th{position:sticky;top:0;z-index:10;padding:10px 16px;font-family:var(--font-mono);font-size:0.65rem;font-weight:500;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.08em;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border-br);white-space:nowrap;transition:background var(--transition)}
@@ -261,7 +496,7 @@ option{background:var(--surface2);color:var(--text)}
 .insight-card-title{font-family:var(--font-display);font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:3px}
 .insight-card-sub{font-family:var(--font-mono);font-size:0.63rem;color:var(--text-sub);margin-bottom:14px;letter-spacing:0.03em}
 
-/* EXCEL / PDF DOWNLOAD BUTTONS */
+/* EXCEL / PDF BUTTONS */
 .btn-excel{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;background:rgba(46,170,126,0.1);border:1px solid rgba(46,170,126,0.3);border-radius:var(--radius-sm);color:var(--accent3);font-size:0.78rem;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all var(--transition);white-space:nowrap}
 .btn-excel:hover{background:rgba(46,170,126,0.18);border-color:rgba(46,170,126,0.5)}
 .btn-pdf{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;background:rgba(217,79,79,0.1);border:1px solid rgba(217,79,79,0.3);border-radius:var(--radius-sm);color:var(--danger);font-size:0.78rem;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all var(--transition);white-space:nowrap}
@@ -271,37 +506,14 @@ option{background:var(--surface2);color:var(--text)}
 .prog-cell{max-width:280px;font-size:0.78rem;line-height:1.55;white-space:pre-line}
 .desc-cell{max-width:240px;font-size:0.8rem;line-height:1.5}
 
-/* ══════════════════════════════════════════════
-   BACK TO TOP BUTTON
-══════════════════════════════════════════════ */
-#back-to-top{
-  position:fixed;bottom:28px;right:24px;z-index:200;
-  width:42px;height:42px;
-  background:var(--surface);
-  border:1px solid var(--border-br);
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--text-sub);
-  cursor:pointer;
-  box-shadow:var(--shadow);
-  opacity:0;pointer-events:none;
-  transition:opacity 0.3s ease,background 0.2s,color 0.2s,transform 0.2s,border-color 0.2s;
-  font-size:0.9rem;
-}
+/* BACK TO TOP */
+#back-to-top{position:fixed;bottom:28px;right:24px;z-index:200;width:42px;height:42px;background:var(--surface);border:1px solid var(--border-br);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-sub);cursor:pointer;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity 0.3s ease,background 0.2s,color 0.2s,transform 0.2s,border-color 0.2s;font-size:0.9rem}
 #back-to-top.visible{opacity:1;pointer-events:auto}
 #back-to-top:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-2px)}
-#back-to-top:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 #back-to-top:active{transform:scale(0.95)}
 
-/* ══════════════════════════════════════════════
-   PDF LOADING OVERLAY
-══════════════════════════════════════════════ */
-#pdf-overlay{
-  position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,0.65);
-  display:none;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-}
+/* PDF OVERLAY */
+#pdf-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.65);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 #pdf-overlay.visible{display:flex}
 .pdf-modal{background:var(--surface);border:1px solid var(--border-br);border-radius:16px;padding:36px 40px;text-align:center;width:300px;box-shadow:var(--shadow)}
 .pdf-modal .spinner{margin:0 auto 16px}
@@ -309,13 +521,13 @@ option{background:var(--surface2);color:var(--text)}
 .pdf-modal-sub{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-sub)}
 
 @media(max-width:1200px){.chart-grid{grid-template-columns:1fr}.chart-grid-3{grid-template-columns:1fr 1fr}.insight-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:900px){.chart-grid,.chart-grid-3,.chart-grid-2{grid-template-columns:1fr}.insight-grid{grid-template-columns:1fr}.chart-card.span2{grid-column:span 1}}
-@media(max-width:600px){.content{padding:14px 14px}.topbar{padding:0 14px}.nav{padding:0 14px}.login-card{width:calc(100% - 28px);padding:30px 22px}.work-meta{grid-template-columns:1fr 1fr}.kpi-grid{grid-template-columns:1fr 1fr}.topbar-date{display:none}}
+@media(max-width:900px){.chart-grid,.chart-grid-3,.chart-grid-2{grid-template-columns:1fr}.insight-grid{grid-template-columns:1fr}.chart-card.span2{grid-column:span 1}.wx-panel{flex-wrap:wrap}}
+@media(max-width:600px){.content{padding:14px 14px}.topbar{padding:0 14px}.nav{padding:0 14px}.login-card{width:calc(100% - 28px);padding:30px 22px}.work-meta{grid-template-columns:1fr 1fr}.kpi-grid{grid-template-columns:1fr 1fr}.topbar-date{display:none}.page-header-wx{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════ LOGIN ══════════════════ -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-grid"></div>
   <div class="login-theme-toggle">
@@ -359,9 +571,8 @@ option{background:var(--surface2);color:var(--text)}
   </div>
 </div>
 
-<!-- ══════════════════ DASHBOARD ══════════════════ -->
+<!-- DASHBOARD -->
 <div id="dashboard">
-
   <header class="topbar">
     <div class="topbar-left">
       <img src="https://justingps.github.io/dpr/logo.png" alt="GPS" class="topbar-logo">
@@ -380,7 +591,6 @@ option{background:var(--surface2);color:var(--text)}
     </div>
   </header>
 
-  <!-- STICKY NAV — updated order: Analytics, KPI, Report Summary, Daily Reports, Project Status, Resources -->
   <nav class="nav">
     <button class="nav-tab active" data-tab="summary"><i class="fas fa-chart-area"></i> Analytics</button>
     <button class="nav-tab" data-tab="kpi"><i class="fas fa-gauge-high"></i> KPI Dashboard</button>
@@ -394,7 +604,67 @@ option{background:var(--surface2);color:var(--text)}
 
     <!-- ════════ ANALYTICS ════════ -->
     <div id="tab-summary" class="tab-panel active">
-      <div class="page-header"><h1 class="page-title">Work <span>Analytics</span></h1></div>
+
+      <!-- Page header with integrated weather widget -->
+      <div class="page-header-wx">
+        <h1 class="page-title">Work <span>Analytics</span></h1>
+        <!-- WEATHER WIDGET -->
+        <div class="wx-panel" id="wx-panel">
+          <!-- Loading state -->
+          <div id="wx-loading-state" style="display:flex;align-items:center;gap:8px;padding:2px 4px">
+            <div class="wx-loading-dot"></div>
+            <span style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-sub)">Loading weather…</span>
+          </div>
+          <!-- Loaded state (hidden until data arrives) -->
+          <div id="wx-loaded-state" style="display:none;align-items:center;gap:8px">
+            <!-- Day toggle -->
+            <div class="wx-day-toggle">
+              <button class="wx-day-btn active" id="wx-btn-today" onclick="wxSetDay(0)">Today</button>
+              <button class="wx-day-btn" id="wx-btn-tmrw" onclick="wxSetDay(1)">Tmrw</button>
+            </div>
+            <div class="wx-sep"></div>
+            <!-- Safah -->
+            <div class="wx-site" id="wx-site-safah">
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <div class="wx-label-row">
+                  <div class="wx-dot-live" id="wx-live-dot"></div>
+                  <span class="wx-site-name">Safah</span>
+                </div>
+                <div class="wx-cond" id="wx-cond-safah">—</div>
+              </div>
+              <div class="wx-icon-wrap" id="wx-icon-safah"></div>
+              <div>
+                <div class="wx-temp-val wx-temp-hi" id="wx-hi-safah">—</div>
+                <div class="wx-temp-val wx-temp-lo" id="wx-lo-safah">—</div>
+              </div>
+              <div class="wx-mini-stats">
+                <div class="wx-stat-row rain"><i class="fas fa-droplet"></i><span id="wx-rain-safah">—</span></div>
+                <div class="wx-stat-row wind"><i class="fas fa-wind"></i><span id="wx-wind-safah">—</span></div>
+              </div>
+            </div>
+            <div class="wx-sep"></div>
+            <!-- Wadi Latham -->
+            <div class="wx-site" id="wx-site-wadi">
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <div class="wx-label-row">
+                  <span class="wx-site-name">Wadi Latham</span>
+                </div>
+                <div class="wx-cond" id="wx-cond-wadi">—</div>
+              </div>
+              <div class="wx-icon-wrap" id="wx-icon-wadi"></div>
+              <div>
+                <div class="wx-temp-val wx-temp-hi" id="wx-hi-wadi">—</div>
+                <div class="wx-temp-val wx-temp-lo" id="wx-lo-wadi">—</div>
+              </div>
+              <div class="wx-mini-stats">
+                <div class="wx-stat-row rain"><i class="fas fa-droplet"></i><span id="wx-rain-wadi">—</span></div>
+                <div class="wx-stat-row wind"><i class="fas fa-wind"></i><span id="wx-wind-wadi">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="date-range-row">
         <span class="date-range-label"><i class="far fa-calendar-range"></i> Date Range</span>
         <input type="date" id="sum-start" class="f-input" style="max-width:155px" onchange="renderSummary()">
@@ -462,8 +732,7 @@ option{background:var(--surface2);color:var(--text)}
         <input type="date" id="kpi-end" class="f-input" style="max-width:155px" onchange="renderKPI()">
       </div>
       <div id="kpi-loading" class="loading">
-        <div class="spinner"></div>
-        <div class="loading-text">Computing KPIs</div>
+        <div class="spinner"></div><div class="loading-text">Computing KPIs</div>
         <div class="loading-sub">Deriving performance indicators…</div>
       </div>
       <div id="kpi-content" style="display:none">
@@ -526,7 +795,7 @@ option{background:var(--surface2);color:var(--text)}
       </div>
     </div>
 
-    <!-- ════════ REPORT SUMMARY — single date ════════ -->
+    <!-- ════════ REPORT SUMMARY ════════ -->
     <div id="tab-repsum" class="tab-panel">
       <div class="page-header"><h1 class="page-title">Report <span>Summary</span></h1></div>
       <div class="filters">
@@ -725,11 +994,11 @@ option{background:var(--surface2);color:var(--text)}
       </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /dashboard -->
+  </div>
+</div>
 
 <!-- Back to Top -->
-<button id="back-to-top" aria-label="Back to top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+<button id="back-to-top" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
   <i class="fas fa-chevron-up"></i>
 </button>
 
@@ -787,7 +1056,7 @@ let DATA = [], charts = {}, dataReady = false;
 let lastStatusGroups = [], lastStatusDate = null;
 let lastResAllRows = [], lastResDate = null;
 let lastRepSumRows = [];
-let lastRepGroups = []; // for PDF export
+let lastRepGroups = [];
 
 const KNOWN_DISCIPLINES = ['Piping & Mechanical','Electrical','Civil','Instrumentation','OHL'];
 
@@ -798,6 +1067,155 @@ function hexA(hex,a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3
 updateChartDefaults();
 Chart.defaults.font.family = "'DM Mono', monospace";
 Chart.defaults.font.size = 11;
+
+/* ══════════════════════════════════════════════
+   WEATHER WIDGET
+   Safah (Block-9): 20.73°N, 57.50°E
+   Wadi Latham (Block-9): 21.15°N, 57.02°E
+══════════════════════════════════════════════ */
+const WX_SITES = {
+  safah: { lat: 20.73, lon: 57.50, label: 'Safah' },
+  wadi:  { lat: 21.15, lon: 57.02, label: 'Wadi Latham' }
+};
+
+// WMO weather code → [description, icon type]
+// icon types: 'sunny','sunny-hot','partly-cloudy','cloudy','rainy','thunderstorm','dusty'
+const WX_WMO = {
+  0:  ['Clear sky',       'sunny'],
+  1:  ['Mainly clear',    'sunny'],
+  2:  ['Partly cloudy',   'partly-cloudy'],
+  3:  ['Overcast',        'cloudy'],
+  45: ['Hazy / Fog',      'dusty'],
+  48: ['Icy fog',         'cloudy'],
+  51: ['Light drizzle',   'rainy'],
+  53: ['Drizzle',         'rainy'],
+  55: ['Heavy drizzle',   'rainy'],
+  61: ['Light rain',      'rainy'],
+  63: ['Rain',            'rainy'],
+  65: ['Heavy rain',      'rainy'],
+  71: ['Light snow',      'cloudy'],
+  73: ['Snow',            'cloudy'],
+  75: ['Heavy snow',      'cloudy'],
+  77: ['Snow grains',     'cloudy'],
+  80: ['Light showers',   'rainy'],
+  81: ['Showers',         'rainy'],
+  82: ['Heavy showers',   'rainy'],
+  95: ['Thunderstorm',    'thunderstorm'],
+  96: ['T-storm + hail',  'thunderstorm'],
+  99: ['T-storm + hail',  'thunderstorm'],
+};
+
+let wxData = null;   // { safah: {daily: {...}}, wadi: {daily: {...}} }
+let wxDay  = 0;      // 0=today, 1=tomorrow
+
+function wxGetIcon(type, tempMax) {
+  // Use sunny-hot if temp > 40°C and sunny
+  const itype = (type === 'sunny' && tempMax > 40) ? 'sunny-hot' : type;
+  const svgMap = {
+    'sunny': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      <g class="wx-sun">
+        ${[0,45,90,135,180,225,270,315].map((a,i)=>`<rect x="13" y="1" width="2" height="5" rx="1" fill="#f59e0b" opacity="0.85" transform="rotate(${a} 14 14)" style="animation:wx-spin-rays 8s linear infinite;transform-origin:14px 14px"/>`).join('')}
+        <circle cx="14" cy="14" r="6" fill="#f59e0b" style="animation:wx-pulse 2.5s ease-in-out infinite"/>
+      </g>
+    </svg>`,
+    'sunny-hot': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="14" r="9" fill="rgba(251,146,60,0.15)" style="animation:wx-pulse 2s ease-in-out infinite"/>
+      ${[0,45,90,135,180,225,270,315].map(a=>`<rect x="13" y="0" width="2" height="5" rx="1" fill="#f97316" opacity="0.9" transform="rotate(${a} 14 14)" style="animation:wx-spin-rays 6s linear infinite;transform-origin:14px 14px"/>`).join('')}
+      <circle cx="14" cy="14" r="7" fill="#f97316" style="animation:wx-pulse 2s ease-in-out infinite"/>
+    </svg>`,
+    'partly-cloudy': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      ${[0,45,90,135].map(a=>`<rect x="13" y="1" width="2" height="4" rx="1" fill="#f59e0b" opacity="0.7" transform="rotate(${a} 10 10)" style="animation:wx-spin-rays 8s linear infinite;transform-origin:10px 10px"/>`).join('')}
+      <circle cx="10" cy="10" r="4.5" fill="#fbbf24" opacity="0.85"/>
+      <rect x="4" y="14" width="20" height="8" rx="4" fill="#94a3b8" style="animation:wx-float 3.5s ease-in-out infinite"/>
+      <rect x="7" y="11" width="14" height="8" rx="4" fill="#cbd5e1" style="animation:wx-float 3.5s ease-in-out infinite"/>
+    </svg>`,
+    'cloudy': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="15" width="22" height="9" rx="4.5" fill="#94a3b8" style="animation:wx-float 4s ease-in-out infinite"/>
+      <rect x="6" y="11" width="16" height="9" rx="4.5" fill="#cbd5e1" style="animation:wx-float 3.5s ease-in-out infinite 0.5s"/>
+    </svg>`,
+    'rainy': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="4" width="22" height="9" rx="4.5" fill="#94a3b8" style="animation:wx-float 4s ease-in-out infinite"/>
+      <rect x="6" y="3" width="16" height="8" rx="4" fill="#cbd5e1" style="animation:wx-float 3.5s ease-in-out infinite 0.3s"/>
+      <line x1="9" y1="17" x2="7" y2="24" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" class="wx-drop" style="animation-delay:0s"/>
+      <line x1="14" y1="16" x2="12" y2="23" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" class="wx-drop" style="animation-delay:0.35s"/>
+      <line x1="19" y1="17" x2="17" y2="24" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" class="wx-drop" style="animation-delay:0.7s"/>
+    </svg>`,
+    'thunderstorm': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="3" width="24" height="10" rx="5" fill="#64748b"/>
+      <rect x="5" y="2" width="18" height="9" rx="4.5" fill="#94a3b8"/>
+      <polygon points="15,14 10,21 14,21 11,28 18,19 14,19" fill="#fbbf24" style="animation:wx-pulse 1.5s ease-in-out infinite"/>
+    </svg>`,
+    'dusty': `<svg viewBox="0 0 28 28" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="8" width="24" height="4" rx="2" fill="#d4a76a" opacity="0.7" style="animation:wx-float 3s ease-in-out infinite"/>
+      <rect x="4" y="14" width="20" height="4" rx="2" fill="#c49a55" opacity="0.6" style="animation:wx-float 3.5s ease-in-out infinite 0.5s"/>
+      <rect x="2" y="20" width="24" height="4" rx="2" fill="#d4a76a" opacity="0.5" style="animation:wx-float 4s ease-in-out infinite 1s"/>
+      <circle cx="22" cy="7" r="5" fill="#f59e0b" opacity="0.6"/>
+    </svg>`
+  };
+  return svgMap[itype] || svgMap['cloudy'];
+}
+
+async function fetchWeatherData() {
+  try {
+    const urls = Object.values(WX_SITES).map(s =>
+      `https://api.open-meteo.com/v1/forecast?latitude=${s.lat}&longitude=${s.lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,windspeed_10m_max&timezone=Asia%2FMuscat&forecast_days=2`
+    );
+    const [r1, r2] = await Promise.all(urls.map(u => fetch(u).then(r => r.json())));
+    wxData = { safah: r1, wadi: r2 };
+    wxRender();
+  } catch(e) {
+    console.warn('Weather fetch failed:', e);
+    document.getElementById('wx-loading-state').innerHTML =
+      '<span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)"><i class="fas fa-triangle-exclamation"></i> Weather unavailable</span>';
+  }
+}
+
+function wxSetDay(d) {
+  wxDay = d;
+  document.getElementById('wx-btn-today').classList.toggle('active', d === 0);
+  document.getElementById('wx-btn-tmrw').classList.toggle('active', d === 1);
+  // Remove live dot on tomorrow
+  document.getElementById('wx-live-dot').style.display = d === 0 ? 'block' : 'none';
+  if (wxData) wxRenderData();
+}
+
+function wxRender() {
+  document.getElementById('wx-loading-state').style.display = 'none';
+  document.getElementById('wx-loaded-state').style.display = 'flex';
+  wxRenderData();
+}
+
+function wxRenderData() {
+  if (!wxData) return;
+  const sites = [
+    { key: 'safah', data: wxData.safah },
+    { key: 'wadi',  data: wxData.wadi  }
+  ];
+  sites.forEach(({key, data}) => {
+    const d = data.daily;
+    const i = wxDay;
+    const tmax = Math.round(d.temperature_2m_max[i]);
+    const tmin = Math.round(d.temperature_2m_min[i]);
+    const rain = d.precipitation_sum[i] !== undefined ? d.precipitation_sum[i].toFixed(1) : '0.0';
+    const wind = Math.round(d.windspeed_10m_max[i]);
+    const code = d.weathercode[i];
+    const [desc, iconType] = WX_WMO[code] || ['Unknown', 'cloudy'];
+
+    document.getElementById(`wx-hi-${key}`).textContent = `${tmax}°C`;
+    document.getElementById(`wx-lo-${key}`).textContent = `↓${tmin}°C`;
+    document.getElementById(`wx-rain-${key}`).textContent = `${rain}mm`;
+    document.getElementById(`wx-wind-${key}`).textContent = `${wind}km/h`;
+    document.getElementById(`wx-cond-${key}`).textContent = desc;
+    document.getElementById(`wx-icon-${key}`).innerHTML = wxGetIcon(iconType, tmax);
+
+    // Color the hi temp based on heat
+    const hiEl = document.getElementById(`wx-hi-${key}`);
+    if (tmax >= 45) hiEl.style.color = '#dc2626';
+    else if (tmax >= 40) hiEl.style.color = '#e07b39';
+    else if (tmax >= 35) hiEl.style.color = '#d4922b';
+    else hiEl.style.color = '';
+  });
+}
 
 /* ══════════════════════════════════════════════
    DISCIPLINE FILTER HELPER
@@ -855,6 +1273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   fetchData();
+  fetchWeatherData(); // fetch weather on page load (before login)
 });
 
 function bootDashboard() {
@@ -958,7 +1377,6 @@ function groupByProject(dateKey, area='all', disc='all', wiSearch='') {
   return { groups:Object.values(map), uniqueResources, uniqueForemen };
 }
 
-/* Group data over a date RANGE — for report summary (single date version) */
 function groupByProjectForDate(dateKey, area='all', disc='all') {
   const map={};
   DATA.forEach(row=>{
@@ -1247,14 +1665,13 @@ function renderReports(){
 }
 
 /* ══════════════════════════════════════════════
-   PDF EXPORT — Daily Reports
+   PDF EXPORT
 ══════════════════════════════════════════════ */
 async function downloadReportsPDF() {
   if (!lastRepGroups.length) { alert('No reports to export.'); return; }
   const overlay = document.getElementById('pdf-overlay');
   const progressTxt = document.getElementById('pdf-progress-text');
   overlay.classList.add('visible');
-
   try {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
@@ -1262,35 +1679,17 @@ async function downloadReportsPDF() {
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 36;
     const isDark = currentTheme === 'dark';
-
-    // Colors
-    const bg = isDark ? '#1c2333' : '#ffffff';
-    const textMain = isDark ? '#e3e8f0' : '#1a2236';
-    const textSub = isDark ? '#8b96ab' : '#5a6880';
-    const borderCol = isDark ? '#2a3a55' : '#e0e4ec';
-    const accentOrange = '#e07b39';
-    const accentBlue = '#3a7bd5';
-    const accentGreen = '#2eaa7e';
-    const headerBg = isDark ? '#222c3d' : '#f0f2f6';
-
     const dateVal = getDate('r-date');
     const dateStr = dateVal ? fmtDisplay(dateVal) : '—';
-
     for (let i = 0; i < lastRepGroups.length; i++) {
       const g = lastRepGroups[i];
       progressTxt.textContent = `Rendering report ${i + 1} of ${lastRepGroups.length}…`;
       if (i > 0) pdf.addPage();
-
       let y = margin;
-
-      // ── Header band ──
       pdf.setFillColor(isDark ? 28 : 244, isDark ? 35 : 246, isDark ? 51 : 249);
       pdf.rect(0, 0, pageW, 72, 'F');
-      // Orange accent line
       pdf.setFillColor(224, 123, 57);
       pdf.rect(0, 0, 4, 72, 'F');
-
-      // Company logo area
       pdf.setFontSize(15);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
@@ -1299,35 +1698,22 @@ async function downloadReportsPDF() {
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
       pdf.text('OXY OMAN · CONTRACT #24000110790', margin + 6, 38);
-
-      // Report badge (right side)
       const badgeText = `Work Report #${i + 1}`;
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(224, 123, 57);
       const badgeX = pageW - margin - pdf.getTextWidth(badgeText) - 16;
-      pdf.setFillColor(224, 123, 57, 0.12);
-      pdf.roundedRect(badgeX - 8, 10, pdf.getTextWidth(badgeText) + 16, 18, 3, 3, 'F');
       pdf.text(badgeText, badgeX, 22);
-
-      // Date
       pdf.setFontSize(7.5);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
       pdf.text(`Date: ${dateStr}`, pageW - margin - pdf.getTextWidth(`Date: ${dateStr}`), 38);
-
-      // WI label
       pdf.setFontSize(11);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
       pdf.text(`WI: ${g.wi}`, margin + 6, 58);
       y = 88;
-
-      // ── Description box ──
       if (g.desc) {
-        pdf.setFillColor(isDark ? 22 : 248, isDark ? 27 : 249, isDark ? 38 : 252);
-        pdf.setDrawColor(isDark ? 42 : 224, isDark ? 58 : 228, isDark ? 85 : 236);
-        pdf.roundedRect(margin, y, pageW - margin * 2, 0, 3, 3);
         pdf.setFontSize(8);
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
@@ -1338,22 +1724,14 @@ async function downloadReportsPDF() {
         pdf.text(descLines, margin + 8, y + 13);
         y += descH + 10;
       }
-
-      // ── Meta grid ──
       const metaItems = [
-        ['Foreman ID', g.id],
-        ['Foreman Name', g.crewLead],
-        ['Area / Block', g.area],
-        ['Discipline', g.discipline],
-        ['Permit No.', g.permitNo],
-        ['Work Hours', `${g.timeIn} → ${g.timeOut}`],
+        ['Foreman ID', g.id],['Foreman Name', g.crewLead],['Area / Block', g.area],
+        ['Discipline', g.discipline],['Permit No.', g.permitNo],['Work Hours', `${g.timeIn} → ${g.timeOut}`],
         ['Manpower', String(g.resourceRows.filter(r=>r.type.toLowerCase()==='manpower').length)],
         ['Equipment', String(g.resourceRows.filter(r=>r.type.toLowerCase()==='equipment').length)],
         ['Crew Size', String(g.resources.size)],
       ];
-      const cols = 3;
-      const cellW = (pageW - margin * 2) / cols;
-      const cellH = 34;
+      const cols = 3, cellW = (pageW - margin * 2) / cols, cellH = 34;
       metaItems.forEach((item, idx) => {
         const col = idx % cols, row = Math.floor(idx / cols);
         const cx = margin + col * cellW, cy = y + row * cellH;
@@ -1371,111 +1749,77 @@ async function downloadReportsPDF() {
         pdf.text(valLines[0], cx + 6, cy + 24);
       });
       y += Math.ceil(metaItems.length / cols) * cellH + 14;
-
-      // ── Progress section ──
       const progressLines = g.progress.replace(/"/g,'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const idx=l.lastIndexOf('='); return idx!==-1?[l.slice(0,idx).trim(),l.slice(idx+1).trim()]:[l,'—']; });
       if (progressLines.length) {
         pdf.setFontSize(8);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
         pdf.text('PROGRESS DETAILS', margin, y + 6);
-        pdf.setDrawColor(isDark ? 42 : 200, isDark ? 58 : 210, isDark ? 85 : 230);
-        pdf.line(margin + pdf.getTextWidth('PROGRESS DETAILS') + 6, y + 4, pageW - margin, y + 4);
         y += 14;
-        // Table header
-        const pColW = [(pageW - margin * 2) * 0.08, (pageW - margin * 2) * 0.72, (pageW - margin * 2) * 0.2];
-        const pHeaders = ['#', 'Description', 'Quantity'];
-        pHeaders.forEach((h, hi) => {
-          const hx = margin + pColW.slice(0, hi).reduce((a,b)=>a+b, 0);
-          pdf.setFillColor(isDark ? 34 : 240, isDark ? 44 : 242, isDark ? 61 : 246);
-          pdf.rect(hx, y, pColW[hi], 16, 'F');
-          pdf.setFontSize(6.5);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
-          pdf.text(h, hx + 4, y + 10);
+        const pColW = [(pageW-margin*2)*0.08,(pageW-margin*2)*0.72,(pageW-margin*2)*0.2];
+        ['#','Description','Quantity'].forEach((h, hi) => {
+          const hx = margin + pColW.slice(0,hi).reduce((a,b)=>a+b,0);
+          pdf.setFillColor(isDark?34:240,isDark?44:242,isDark?61:246);
+          pdf.rect(hx,y,pColW[hi],16,'F');
+          pdf.setFontSize(6.5);pdf.setFont('helvetica','bold');
+          pdf.setTextColor(isDark?139:90,isDark?150:104,isDark?171:128);
+          pdf.text(h,hx+4,y+10);
         });
         y += 16;
         progressLines.forEach((pl, pi) => {
           const rowH = 15;
-          if (pi % 2 === 0) {
-            pdf.setFillColor(isDark ? 22 : 250, isDark ? 27 : 251, isDark ? 38 : 253);
-            pdf.rect(margin, y, pageW - margin * 2, rowH, 'F');
-          }
-          pdf.setFontSize(7.5);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(isDark ? 227 : 26, isDark ? 232 : 34, isDark ? 240 : 54);
-          pdf.text(String(pi + 1), margin + 4, y + 10);
-          const descTxt = pdf.splitTextToSize(pl[0], pColW[1] - 8);
-          pdf.text(descTxt[0], margin + pColW[0] + 4, y + 10);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(224, 123, 57);
-          pdf.text(pl[1], margin + pColW[0] + pColW[1] + 4, y + 10);
-          y += rowH;
+          if(pi%2===0){pdf.setFillColor(isDark?22:250,isDark?27:251,isDark?38:253);pdf.rect(margin,y,pageW-margin*2,rowH,'F');}
+          pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');
+          pdf.setTextColor(isDark?227:26,isDark?232:34,isDark?240:54);
+          pdf.text(String(pi+1),margin+4,y+10);
+          pdf.text(pdf.splitTextToSize(pl[0],pColW[1]-8)[0],margin+pColW[0]+4,y+10);
+          pdf.setFont('helvetica','bold');pdf.setTextColor(224,123,57);
+          pdf.text(pl[1],margin+pColW[0]+pColW[1]+4,y+10);
+          y+=rowH;
         });
-        y += 8;
+        y+=8;
       }
-
-      // ── Resources section ──
-      if (g.resourceRows.length) {
-        if (y > pageH - 120) { pdf.addPage(); y = margin; }
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(isDark ? 139 : 90, isDark ? 150 : 104, isDark ? 171 : 128);
-        pdf.text('RESOURCES', margin, y + 6);
-        pdf.setDrawColor(isDark ? 42 : 200, isDark ? 58 : 210, isDark ? 85 : 230);
-        pdf.line(margin + pdf.getTextWidth('RESOURCES') + 6, y + 4, pageW - margin, y + 4);
-        y += 14;
-        const rColW = [(pageW-margin*2)*0.06,(pageW-margin*2)*0.18,(pageW-margin*2)*0.28,(pageW-margin*2)*0.16,(pageW-margin*2)*0.16,(pageW-margin*2)*0.16];
-        const rHeaders = ['#','Resource ID','Designation','Type','Time-In','Time-Out'];
-        rHeaders.forEach((h, hi) => {
-          const hx = margin + rColW.slice(0,hi).reduce((a,b)=>a+b,0);
+      if(g.resourceRows.length){
+        if(y>pageH-120){pdf.addPage();y=margin;}
+        pdf.setFontSize(8);pdf.setFont('helvetica','bold');
+        pdf.setTextColor(isDark?139:90,isDark?150:104,isDark?171:128);
+        pdf.text('RESOURCES',margin,y+6);
+        y+=14;
+        const rColW=[(pageW-margin*2)*0.06,(pageW-margin*2)*0.18,(pageW-margin*2)*0.28,(pageW-margin*2)*0.16,(pageW-margin*2)*0.16,(pageW-margin*2)*0.16];
+        ['#','Resource ID','Designation','Type','Time-In','Time-Out'].forEach((h,hi)=>{
+          const hx=margin+rColW.slice(0,hi).reduce((a,b)=>a+b,0);
           pdf.setFillColor(isDark?34:240,isDark?44:242,isDark?61:246);
-          pdf.rect(hx, y, rColW[hi], 16, 'F');
-          pdf.setFontSize(6.5);
-          pdf.setFont('helvetica','bold');
+          pdf.rect(hx,y,rColW[hi],16,'F');
+          pdf.setFontSize(6.5);pdf.setFont('helvetica','bold');
           pdf.setTextColor(isDark?139:90,isDark?150:104,isDark?171:128);
-          pdf.text(h, hx+4, y+10);
+          pdf.text(h,hx+4,y+10);
         });
-        y += 16;
-        g.resourceRows.forEach((r, ri) => {
-          if (y > pageH - 40) { pdf.addPage(); y = margin; }
-          const rowH = 14;
-          if (ri%2===0) {
-            pdf.setFillColor(isDark?22:250,isDark?27:251,isDark?38:253);
-            pdf.rect(margin, y, pageW-margin*2, rowH, 'F');
-          }
-          const vals = [String(ri+1), r.id, r.desig, r.type||'—', r.tin, r.tout];
-          const typeColors = { manpower:[46,170,126], equipment:[58,123,213] };
-          vals.forEach((v, vi) => {
-            const vx = margin + rColW.slice(0,vi).reduce((a,b)=>a+b,0);
-            pdf.setFontSize(7.5);
-            pdf.setFont('helvetica','normal');
-            if (vi === 3) {
-              const tl = v.toLowerCase();
-              const tc = typeColors[tl] || [212,146,43];
-              pdf.setTextColor(...tc);
-            } else {
-              pdf.setTextColor(isDark?227:26,isDark?232:34,isDark?240:54);
-            }
-            pdf.text(v, vx+4, y+9);
+        y+=16;
+        g.resourceRows.forEach((r,ri)=>{
+          if(y>pageH-40){pdf.addPage();y=margin;}
+          const rowH=14;
+          if(ri%2===0){pdf.setFillColor(isDark?22:250,isDark?27:251,isDark?38:253);pdf.rect(margin,y,pageW-margin*2,rowH,'F');}
+          [String(ri+1),r.id,r.desig,r.type||'—',r.tin,r.tout].forEach((v,vi)=>{
+            const vx=margin+rColW.slice(0,vi).reduce((a,b)=>a+b,0);
+            pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');
+            const tl=(vi===3?v:'').toLowerCase();
+            if(vi===3&&tl==='manpower')pdf.setTextColor(46,170,126);
+            else if(vi===3&&tl==='equipment')pdf.setTextColor(58,123,213);
+            else if(vi===3)pdf.setTextColor(212,146,43);
+            else pdf.setTextColor(isDark?227:26,isDark?232:34,isDark?240:54);
+            pdf.text(v,vx+4,y+9);
           });
-          y += rowH;
+          y+=rowH;
         });
       }
-
-      // ── Footer ──
-      pdf.setFontSize(7);
-      pdf.setFont('helvetica','normal');
+      pdf.setFontSize(7);pdf.setFont('helvetica','normal');
       pdf.setTextColor(isDark?64:160,isDark?77:172,isDark?99:190);
-      pdf.text(`Gulf Petrochemical Services LLC · Generated ${new Date().toLocaleDateString()} · Page ${i+1} of ${lastRepGroups.length}`, margin, pageH - 18);
-      pdf.setFillColor(224,123,57);
-      pdf.rect(0, pageH - 4, pageW, 4, 'F');
+      pdf.text(`Gulf Petrochemical Services LLC · Generated ${new Date().toLocaleDateString()} · Page ${i+1} of ${lastRepGroups.length}`,margin,pageH-18);
+      pdf.setFillColor(224,123,57);pdf.rect(0,pageH-4,pageW,4,'F');
     }
-
-    const fileName = `GPS_DailyReports_${getDate('r-date') ? toKey(getDate('r-date')) : 'export'}.pdf`;
-    pdf.save(fileName);
+    pdf.save(`GPS_DailyReports_${getDate('r-date')?toKey(getDate('r-date')):'export'}.pdf`);
   } catch(err) {
-    console.error('PDF error:', err);
+    console.error('PDF error:',err);
     alert('PDF generation failed. Please try again.');
   } finally {
     overlay.classList.remove('visible');
@@ -1483,46 +1827,35 @@ async function downloadReportsPDF() {
 }
 
 /* ══════════════════════════════════════════════
-   REPORT SUMMARY — single date
+   REPORT SUMMARY
 ══════════════════════════════════════════════ */
 function renderRepSum(){
   if(!dataReady) return;
-  const d = getDate('rs-date');
-  const area = document.getElementById('rs-area').value;
-  const disc = document.getElementById('rs-disc').value;
+  const d=getDate('rs-date'), area=document.getElementById('rs-area').value, disc=document.getElementById('rs-disc').value;
   if(!d){
     document.getElementById('rs-body').innerHTML='<tr><td colspan="9" class="no-data">Please select a date.</td></tr>';
     return;
   }
-
-  const rows = groupByProjectForDate(toKey(d), area, disc);
-  lastRepSumRows = rows;
-
-  const uniqueForemen = new Set(rows.map(r=>r.id)).size;
-  const uniqueAreas = new Set(rows.map(r=>r.area)).size;
-  const totalCrew = rows.reduce((s,r)=>s+r.resources.size, 0);
+  const rows=groupByProjectForDate(toKey(d),area,disc);
+  lastRepSumRows=rows;
+  const uniqueForemen=new Set(rows.map(r=>r.id)).size;
+  const uniqueAreas=new Set(rows.map(r=>r.area)).size;
+  const totalCrew=rows.reduce((s,r)=>s+r.resources.size,0);
   document.getElementById('rs-stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Work Groups</div><div class="stat-value c-accent">${rows.length}</div></div>
     <div class="stat-card"><div class="stat-label">Foremen</div><div class="stat-value">${uniqueForemen}</div></div>
     <div class="stat-card"><div class="stat-label">Areas</div><div class="stat-value c-accent2">${uniqueAreas}</div></div>
     <div class="stat-card"><div class="stat-label">Total Crew</div><div class="stat-value c-accent3">${totalCrew}</div></div>`;
-
-  document.getElementById('rs-badge').textContent = `${rows.length} entries`;
-
+  document.getElementById('rs-badge').textContent=`${rows.length} entries`;
   if(!rows.length){
     document.getElementById('rs-body').innerHTML='<tr><td colspan="9" class="no-data">No records found for the selected filters.</td></tr>';
     return;
   }
-
-  document.getElementById('rs-body').innerHTML = rows.map((g,i)=>{
-    const progressText = formatProgressFlat(g.progress);
+  document.getElementById('rs-body').innerHTML=rows.map((g,i)=>{
+    const progressText=formatProgressFlat(g.progress);
     return `<tr>
-      <td class="mono">${i+1}</td>
-      <td>${escHtml(g.crewLead)}</td>
-      <td class="mono">${escHtml(g.id)}</td>
-      <td>${escHtml(g.area)}</td>
-      <td>${escHtml(g.discipline)}</td>
-      <td class="mono">${escHtml(g.wi)}</td>
+      <td class="mono">${i+1}</td><td>${escHtml(g.crewLead)}</td><td class="mono">${escHtml(g.id)}</td>
+      <td>${escHtml(g.area)}</td><td>${escHtml(g.discipline)}</td><td class="mono">${escHtml(g.wi)}</td>
       <td><strong>${g.resources.size}</strong></td>
       <td class="desc-cell">${escHtml(g.desc||'—')}</td>
       <td class="prog-cell">${escHtml(progressText||'—')}</td>
@@ -1540,13 +1873,10 @@ function formatProgressFlat(progress){
 ══════════════════════════════════════════════ */
 function renderStatus(){
   if(!dataReady) return;
-  const d=getDate('st-date');
-  const area=document.getElementById('st-area').value;
-  const disc=document.getElementById('st-disc').value;
+  const d=getDate('st-date'), area=document.getElementById('st-area').value, disc=document.getElementById('st-disc').value;
   if(!d) return;
-  const { groups, uniqueResources }=groupByProject(toKey(d), area, disc);
-  lastStatusGroups = groups;
-  lastStatusDate = d;
+  const { groups, uniqueResources }=groupByProject(toKey(d),area,disc);
+  lastStatusGroups=groups; lastStatusDate=d;
   document.getElementById('st-table-title').textContent=`Active Projects on ${fmtDisplay(d)}`;
   if(!groups.length){
     ['st-total-proj','st-total-crew','st-total-areas','st-total-mp','st-total-eq'].forEach(id=>document.getElementById(id).textContent='0');
@@ -1579,8 +1909,7 @@ function renderResource(){
   if(!d) return;
   const { groups }=groupByProject(toKey(d),area);
   const all=[]; groups.forEach(g=>g.resourceRows.forEach(r=>all.push({...r,wi:g.wi,area:g.area,foreman:g.crewLead,discipline:g.discipline})));
-  lastResAllRows = all;
-  lastResDate = d;
+  lastResAllRows=all; lastResDate=d;
   const mp=all.filter(r=>r.type.toLowerCase()==='manpower');
   const eq=all.filter(r=>r.type.toLowerCase()==='equipment');
   const nf=all.filter(r=>!['manpower','equipment'].includes(r.type.toLowerCase()));
@@ -1600,69 +1929,48 @@ function renderResource(){
 /* ══════════════════════════════════════════════
    EXCEL EXPORTS
 ══════════════════════════════════════════════ */
-function downloadWorkbook(wb, filename){
-  XLSX.writeFile(wb, filename);
-}
+function downloadWorkbook(wb,filename){ XLSX.writeFile(wb,filename); }
 
 function exportRepSumExcel(){
-  if(!lastRepSumRows.length){ alert('No data to export.'); return; }
-  const dateStr = document.getElementById('rs-date').value;
-  const wsData = [
-    ['#','Foreman Name','Foreman ID','Area / Block','Discipline','WI No.','Crew Size','Work Description','Progress Details'],
-    ...lastRepSumRows.map((g,i)=>[
-      i+1, g.crewLead, g.id, g.area, g.discipline,
-      g.wi, g.resources.size,
-      g.desc || '—',
-      formatProgressFlat(g.progress) || '—'
-    ])
-  ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  if(!lastRepSumRows.length){alert('No data to export.');return;}
+  const dateStr=document.getElementById('rs-date').value;
+  const wsData=[['#','Foreman Name','Foreman ID','Area / Block','Discipline','WI No.','Crew Size','Work Description','Progress Details'],
+    ...lastRepSumRows.map((g,i)=>[i+1,g.crewLead,g.id,g.area,g.discipline,g.wi,g.resources.size,g.desc||'—',formatProgressFlat(g.progress)||'—'])];
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
   ws['!cols']=[{wch:4},{wch:22},{wch:14},{wch:22},{wch:20},{wch:16},{wch:10},{wch:40},{wch:50}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Report Summary');
-  downloadWorkbook(wb, `GPS_ReportSummary_${dateStr}.xlsx`);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Report Summary');
+  downloadWorkbook(wb,`GPS_ReportSummary_${dateStr}.xlsx`);
 }
 
 function exportStatusExcel(){
-  if(!lastStatusGroups.length){ alert('No data to export.'); return; }
-  const dateStr = lastStatusDate ? toKey(lastStatusDate) : 'unknown';
-  const wsData = [
-    ['#','Foreman ID','Crew Lead','WI No.','Area / Block','Crew Size','Manpower','Equipment','Discipline'],
-    ...lastStatusGroups.map((g,i)=>{
-      const mp=g.resourceRows.filter(r=>r.type.toLowerCase()==='manpower').length;
-      const eq=g.resourceRows.filter(r=>r.type.toLowerCase()==='equipment').length;
-      return [i+1, g.id, g.crewLead, g.wi, g.area, g.resources.size, mp, eq, g.discipline];
-    })
-  ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  if(!lastStatusGroups.length){alert('No data to export.');return;}
+  const dateStr=lastStatusDate?toKey(lastStatusDate):'unknown';
+  const wsData=[['#','Foreman ID','Crew Lead','WI No.','Area / Block','Crew Size','Manpower','Equipment','Discipline'],
+    ...lastStatusGroups.map((g,i)=>{const mp=g.resourceRows.filter(r=>r.type.toLowerCase()==='manpower').length;const eq=g.resourceRows.filter(r=>r.type.toLowerCase()==='equipment').length;return[i+1,g.id,g.crewLead,g.wi,g.area,g.resources.size,mp,eq,g.discipline];})];
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
   ws['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:10},{wch:10},{wch:10},{wch:20}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Project Status');
-  downloadWorkbook(wb, `GPS_ProjectStatus_${dateStr}.xlsx`);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Project Status');
+  downloadWorkbook(wb,`GPS_ProjectStatus_${dateStr}.xlsx`);
 }
 
 function exportResourceExcel(){
-  if(!lastResAllRows.length){ alert('No data to export.'); return; }
-  const dateStr = lastResDate ? toKey(lastResDate) : 'unknown';
-  const allData = [
-    ['#','Resource ID','Designation','Type','WI No.','Area','Foreman','Discipline'],
-    ...lastResAllRows.map((r,i)=>[i+1, r.id, r.desig, r.type||'—', r.wi, r.area, r.foreman, r.discipline||'—'])
-  ];
-  const wsAll = XLSX.utils.aoa_to_sheet(allData);
+  if(!lastResAllRows.length){alert('No data to export.');return;}
+  const dateStr=lastResDate?toKey(lastResDate):'unknown';
+  const allData=[['#','Resource ID','Designation','Type','WI No.','Area','Foreman','Discipline'],
+    ...lastResAllRows.map((r,i)=>[i+1,r.id,r.desig,r.type||'—',r.wi,r.area,r.foreman,r.discipline||'—'])];
+  const wsAll=XLSX.utils.aoa_to_sheet(allData);
   wsAll['!cols']=[{wch:4},{wch:14},{wch:22},{wch:12},{wch:16},{wch:22},{wch:22},{wch:20}];
-  const mpRows = lastResAllRows.filter(r=>r.type.toLowerCase()==='manpower');
-  const mpData = [['#','Resource ID','Designation','WI No.','Area','Foreman'],...mpRows.map((r,i)=>[i+1,r.id,r.desig,r.wi,r.area,r.foreman])];
-  const wsMp = XLSX.utils.aoa_to_sheet(mpData);
-  wsMp['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:22}];
-  const eqRows = lastResAllRows.filter(r=>r.type.toLowerCase()==='equipment');
-  const eqData = [['#','Resource ID','Designation','WI No.','Area','Foreman'],...eqRows.map((r,i)=>[i+1,r.id,r.desig,r.wi,r.area,r.foreman])];
-  const wsEq = XLSX.utils.aoa_to_sheet(eqData);
-  wsEq['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:22}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, wsAll, 'All Resources');
-  XLSX.utils.book_append_sheet(wb, wsMp, 'Manpower');
-  XLSX.utils.book_append_sheet(wb, wsEq, 'Equipment');
-  downloadWorkbook(wb, `GPS_Resources_${dateStr}.xlsx`);
+  const mpRows=lastResAllRows.filter(r=>r.type.toLowerCase()==='manpower');
+  const mpData=[['#','Resource ID','Designation','WI No.','Area','Foreman'],...mpRows.map((r,i)=>[i+1,r.id,r.desig,r.wi,r.area,r.foreman])];
+  const wsMp=XLSX.utils.aoa_to_sheet(mpData); wsMp['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:22}];
+  const eqRows=lastResAllRows.filter(r=>r.type.toLowerCase()==='equipment');
+  const eqData=[['#','Resource ID','Designation','WI No.','Area','Foreman'],...eqRows.map((r,i)=>[i+1,r.id,r.desig,r.wi,r.area,r.foreman])];
+  const wsEq=XLSX.utils.aoa_to_sheet(eqData); wsEq['!cols']=[{wch:4},{wch:14},{wch:22},{wch:16},{wch:22},{wch:22}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,wsAll,'All Resources');
+  XLSX.utils.book_append_sheet(wb,wsMp,'Manpower');
+  XLSX.utils.book_append_sheet(wb,wsEq,'Equipment');
+  downloadWorkbook(wb,`GPS_Resources_${dateStr}.xlsx`);
 }
 
 /* ══════════════════════════════════════════════
@@ -1680,8 +1988,8 @@ function triggerTabRender(t){
 /* ══════════════════════════════════════════════
    UTILITIES
 ══════════════════════════════════════════════ */
-function show(id){ const el=document.getElementById(id); if(el) el.style.display='block'; }
-function hide(id){ const el=document.getElementById(id); if(el) el.style.display='none'; }
+function show(id){ const el=document.getElementById(id);if(el)el.style.display='block'; }
+function hide(id){ const el=document.getElementById(id);if(el)el.style.display='none'; }
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 </script>
 </body>
