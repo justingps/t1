@@ -860,7 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function bootDashboard() {
   const today = new Date();
   const yest  = offsetDate(today, -1);
-  const weekStart = offsetDate(yest, -6);
+  const weekStart = offsetDate(yest, -14);
   setDateVal('r-date',   yest);
   setDateVal('st-date',  yest);
   setDateVal('res-date', yest);
