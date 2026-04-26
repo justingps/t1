@@ -1,2132 +1,1407 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GPS</title>
-  <link rel="icon" href="https://justingps.github.io/dpr/logo.png" type="image/png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-  <style>
-    /* Login Page Styles */
-    :root {
-      --primary-blue: #003366;
-      --secondary-blue: #0066cc;
-      --accent-orange: #ff6600;
-      --light-gray: #f5f5f5;
-      --medium-gray: #e0e0e0;
-      --dark-gray: #333333;
-      --white: #ffffff;
-      --error-red: #d32f2f;
-      --success-green: #388e3c;
-      --border-radius: 4px;
-      --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    /* Login Container Styles */
-    #particles-js {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: var(--primary-blue);
-      background-image: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
-      z-index: -1;
-    }
-
-    .login-container {
-      width: 100%;
-      max-width: 440px;
-      padding: 20px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .login-box {
-      background-color: rgba(255, 255, 255, 0.95);
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 40px;
-      position: relative;
-      overflow: hidden;
-      border-top: 4px solid var(--accent-orange);
-      backdrop-filter: blur(2px);
-    }
-
-    .company-logo {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .company-logo img {
-      height: 50px;
-      margin-bottom: 15px;
-    }
-
-    .company-logo h1 {
-      font-size: 22px;
-      font-weight: 500;
-      color: var(--primary-blue);
-      margin-bottom: 5px;
-    }
-
-    .company-logo p {
-      font-size: 14px;
-      color: var(--dark-gray);
-      opacity: 0.8;
-    }
-
-    .login-form {
-      margin-top: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: var(--dark-gray);
-    }
-
-    .input-field {
-      position: relative;
-    }
-
-    .input-field i {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--dark-gray);
-      opacity: 0.6;
-      font-size: 16px;
-    }
-
-    .input-field input {
-      width: 100%;
-      padding: 12px 12px 12px 40px;
-      border: 1px solid var(--medium-gray);
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      transition: var(--transition);
-      background-color: rgba(245, 245, 245, 0.7);
-    }
-
-    .input-field input:focus {
-      outline: none;
-      border-color: var(--secondary-blue);
-      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
-      background-color: var(--white);
-    }
-
-    .login-options {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      font-size: 13px;
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-    }
-
-    .remember-me input {
-      margin-right: 8px;
-    }
-
-    .forgot-password {
-      color: var(--secondary-blue);
-      text-decoration: none;
-      transition: var(--transition);
-    }
-
-    .forgot-password:hover {
-      text-decoration: underline;
-    }
-
-    .login-button {
-      width: 100%;
-      padding: 12px;
-      background-color: var(--accent-orange);
-      color: var(--white);
-      border: none;
-      border-radius: var(--border-radius);
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .login-button:hover {
-      background-color: #e65c00;
-    }
-
-    .login-button:active {
-      transform: translateY(1px);
-    }
-
-    .login-error {
-      color: var(--error-red);
-      font-size: 13px;
-      margin-top: 15px;
-      display: none;
-      align-items: center;
-    }
-
-    .login-error i {
-      margin-right: 8px;
-      font-size: 14px;
-    }
-
-    .login-footer {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--dark-gray);
-      opacity: 0.7;
-      padding-top: 20px;
-      border-top: 1px solid var(--medium-gray);
-    }
-
-    .version-info {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      font-size: 11px;
-      color: var(--dark-gray);
-      opacity: 0.5;
-    }
-
-    /* Dashboard Styles - TailAdmin Inspired */
-    :root {
-      --primary: #4361ee;
-      --primary-dark: #3a56d4;
-      --secondary: #3f37c9;
-      --accent: #f72585;
-      --success: #4cc9f0;
-      --warning: #f8961e;
-      --danger: #f94144;
-      --light: #f8f9fa;
-      --dark: #212529;
-      --gray-100: #f8f9fa;
-      --gray-200: #e9ecef;
-      --gray-300: #dee2e6;
-      --gray-400: #ced4da;
-      --gray-500: #adb5bd;
-      --gray-600: #6c757d;
-      --gray-700: #495057;
-      --gray-800: #343a40;
-      --gray-900: #212529;
-      --font-sans: 'Inter', sans-serif;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      --rounded: 0.375rem;
-      --rounded-md: 0.5rem;
-      --rounded-lg: 0.75rem;
-      --rounded-xl: 1rem;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: var(--font-sans);
-      background-color: #f1f5f9;
-      color: var(--gray-800);
-      line-height: 1.5;
-    }
-
-    .container {
-      max-width: 100%;
-      margin: 0;
-      display: none;
-      min-height: 100vh;
-    }
-
-    /* Header */
-    .header {
-      background: white;
-      padding: 1rem 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow-sm);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .logo-container {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .logo {
-      height: 40px;
-    }
-
-    .company-info {
-      font-size: 0.75rem;
-      line-height: 1.4;
-    }
-
-    .company-info div {
-      display: inline-block;
-      margin-right: 1rem;
-      color: var(--gray-600);
-    }
-
-    .company-info strong {
-      font-weight: 500;
-      color: var(--gray-800);
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      background: white;
-      border-bottom: 1px solid var(--gray-200);
-      padding: 0 1.5rem;
-    }
-
-    .tab {
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-      font-weight: 500;
-      color: var(--gray-500);
-      transition: all 0.2s ease;
-      font-size: 0.875rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      position: relative;
-      margin-bottom: -1px;
-    }
-
-    .tab:hover {
-      color: var(--primary);
-    }
-
-    .tab.active {
-      color: var(--primary);
-      border-bottom: 2px solid var(--primary);
-    }
-
-    .tab i {
-      font-size: 0.9rem;
-    }
-
-    /* Tab Content */
-    .tab-content {
-      display: none;
-      padding: 1.5rem;
-      background: white;
-      margin: 1rem;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .tab-content.active {
-      display: block;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Typography */
-    h1, h2, h3 {
-      color: var(--gray-900);
-      margin-bottom: 1rem;
-      font-weight: 600;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-    }
-
-    h3 {
-      font-size: 1.125rem;
-    }
-
-    /* Filters */
-    .filter-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-      background: white;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 1;
-      min-width: 180px;
-    }
-
-    .filter-label {
-      font-weight: 500;
-      color: var(--gray-700);
-      font-size: 0.875rem;
-      white-space: nowrap;
-    }
-
-    .date-picker, 
-    .area-select, 
-    .discipline-select, 
-    .wi-input {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.875rem;
-      border: 1px solid var(--gray-300);
-      border-radius: var(--rounded);
-      background-color: white;
-      font-family: var(--font-sans);
-      flex: 1;
-      transition: all 0.2s;
-    }
-
-    .date-picker:focus, 
-    .area-select:focus, 
-    .discipline-select:focus, 
-    .wi-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-    }
-
-    /* Tables */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin-top: 1rem;
-    }
-
-    .data-table th {
-      background-color: var(--gray-100);
-      color: var(--gray-700);
-      text-align: left;
-      padding: 0.75rem 1rem;
-      font-weight: 600;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .data-table td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .data-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .data-table tr:hover {
-      background-color: var(--gray-50);
-    }
-
-    /* Cards */
-    .card {
-      background: white;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .card-title {
-      font-weight: 600;
-      color: var(--gray-800);
-    }
-
-    /* Summary Cards */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (min-width: 1024px) {
-      .summary-grid {
-        grid-template-columns: 2fr 1fr;
-      }
-    }
-
-    .chart-card {
-      background: white;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .chart-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: var(--gray-700);
-    }
-
-    /* Stats Cards */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-      padding: 1rem;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-    }
-
-    .stat-value {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--gray-900);
-    }
-
-    /* Work Groups */
-    .work-group {
-      margin-bottom: 1.5rem;
-      background: white;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-
-    .work-group-header {
-      background: var(--primary);
-      color: white;
-      padding: 0.75rem 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .work-group-title {
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .work-group-id {
-      background-color: white;
-      color: var(--primary);
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.75rem;
-    }
-
-    .work-description {
-      white-space: pre-line;
-      padding: 1rem;
-      font-size: 0.875rem;
-      line-height: 1.5;
-      color: var(--gray-700);
-    }
-
-    /* Status Indicators */
-    .status-indicator {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 0.5rem;
-    }
-
-    .status-active {
-      background-color: var(--success);
-    }
-
-    .status-inactive {
-      background-color: var(--warning);
-    }
-
-    /* Loading States */
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem;
-      text-align: center;
-      background: white;
-      border-radius: var(--rounded);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .loading-spinner {
-      width: 2.5rem;
-      height: 2.5rem;
-      border: 3px solid rgba(67, 97, 238, 0.2);
-      border-radius: 50%;
-      border-top-color: var(--primary);
-      animation: spin 0.8s ease-in-out infinite;
-      margin-bottom: 1rem;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      color: var(--gray-600);
-      font-size: 0.875rem;
-      margin-top: 0.5rem;
-    }
-
-    .loading-subtext {
-      color: var(--gray-500);
-      font-size: 0.75rem;
-      margin-top: 0.25rem;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      border-radius: var(--rounded);
-      cursor: pointer;
-      transition: all 0.2s;
-      gap: 0.5rem;
-    }
-
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-
-    .btn-outline {
-      background-color: transparent;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-    }
-
-    .btn-outline:hover {
-      background-color: rgba(67, 97, 238, 0.1);
-    }
-
-    /* Logout Button */
-    .logout-button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: var(--rounded);
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .logout-button:hover {
-      background-color: var(--primary-dark);
-    }
-
-    /* No Data State */
-    .no-data {
-      color: var(--gray-500);
-      font-style: italic;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-
-      .filter-container {
-        flex-direction: column;
-      }
-
-      .filter-group {
-        width: 100%;
-      }
-
-      .tabs {
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-      }
-
-      .tab {
-        white-space: nowrap;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Site Report</title>
+<link rel="icon" type="image/png" href="https://justingps.github.io/dpr/favicon.png">
+<style>
+  :root {
+    --c-green: #1D9E75;
+    --c-green-light: #E1F5EE;
+    --c-green-dark: #0F6E56;
+    --c-red: #E24B4A;
+    --c-red-light: #FCEBEB;
+    --c-blue: #378ADD;
+    --c-blue-light: #E6F1FB;
+    --c-amber: #BA7517;
+    --c-amber-light: #FAEEDA;
+    --c-gray-bg: #F8F9FA;
+    --c-border: rgba(0,0,0,0.1);
+    --c-border-strong: rgba(0,0,0,0.2);
+    --c-text: #1a1a1a;
+    --c-text-muted: #5F5E5A;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    color: var(--c-text);
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .page-wrapper {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--c-border);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 0.5px solid var(--c-border);
+    background: #fff;
+  }
+  .page-header .logo-area img {
+    height: 52px;
+    width: auto;
+    display: block;
+  }
+  .page-header .logo-area .logo-placeholder {
+    height: 52px;
+    width: 52px;
+    border-radius: var(--radius-sm);
+    background: var(--c-green-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--c-green-dark);
+    letter-spacing: 1px;
+  }
+  .page-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--c-text);
+    letter-spacing: 0.5px;
+  }
+  .page-header p {
+    font-size: 13px;
+    color: var(--c-text-muted);
+    margin-top: 2px;
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    background: var(--c-gray-bg);
+    padding: 12px 24px;
+    border-bottom: 0.5px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-bar-track {
+    flex: 1;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--c-green);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--c-text-muted);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  /* Section */
+  .section {
+    padding: 20px 24px;
+  }
+  .section + .section {
+    border-top: 0.5px solid var(--c-border);
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--c-text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--c-green-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-title-icon svg {
+    width: 11px;
+    height: 11px;
+    stroke: var(--c-green-dark);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Form grid */
+  .field-grid {
+    display: grid;
+    gap: 14px;
+  }
+  .field-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .field-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-text-muted);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    height: 38px;
+    border: 0.5px solid var(--c-border-strong);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-size: 14px;
+    color: var(--c-text);
+    background: #fff;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+  }
+  .field-group textarea {
+    height: auto;
+    min-height: 90px;
+    padding: 10px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .field-group input:focus,
+  .field-group select:focus,
+  .field-group textarea:focus {
+    border-color: var(--c-green);
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+  }
+  .field-group input.error,
+  .field-group select.error,
+  .field-group textarea.error {
+    border-color: var(--c-red);
+    box-shadow: 0 0 0 3px rgba(226,75,74,0.1);
+  }
+  .field-error {
+    font-size: 11px;
+    color: var(--c-red);
+    display: none;
+    margin-top: 2px;
+  }
+  .field-error.show { display: block; }
+
+  /* Autocomplete */
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: #fff;
+    border: 0.5px solid var(--c-border-strong);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  }
+  .autocomplete-list div {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 0.5px solid var(--c-border);
+  }
+  .autocomplete-list div:last-child { border-bottom: none; }
+  .autocomplete-list div:hover,
+  .autocomplete-list div.active {
+    background: var(--c-green-light);
+    color: var(--c-green-dark);
+  }
+
+  /* Table */
+  .data-table-wrap {
+    border: 0.5px solid var(--c-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table thead th {
+    background: var(--c-gray-bg);
+    padding: 9px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--c-text-muted);
+    border-bottom: 0.5px solid var(--c-border);
+  }
+  .data-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 0.5px solid var(--c-border);
+    color: var(--c-text);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover { background: var(--c-gray-bg); }
+  .data-table tbody .empty-row td {
+    text-align: center;
+    color: var(--c-text-muted);
+    font-style: italic;
+    padding: 20px;
+  }
+  .data-table .actions-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .icon-btn {
+    width: 28px; height: 28px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    background: transparent;
+  }
+  .icon-btn svg {
+    width: 14px; height: 14px;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+  .icon-btn.edit { color: var(--c-blue); }
+  .icon-btn.edit:hover { background: var(--c-blue-light); }
+  .icon-btn.del { color: var(--c-red); }
+  .icon-btn.del:hover { background: var(--c-red-light); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green { background: var(--c-green-light); color: var(--c-green-dark); }
+  .badge-amber { background: var(--c-amber-light); color: var(--c-amber); }
+  .badge-blue { background: var(--c-blue-light); color: #0C447C; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, transform 0.1s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn svg { width: 14px; height: 14px; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .btn-primary { background: var(--c-green); color: #fff; }
+  .btn-primary:hover { background: var(--c-green-dark); }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+  .btn-ghost { background: transparent; color: var(--c-text-muted); border: 0.5px solid var(--c-border-strong); }
+  .btn-ghost:hover { background: var(--c-gray-bg); }
+  .btn-danger { background: var(--c-red-light); color: var(--c-red); border: 0.5px solid rgba(226,75,74,0.2); }
+  .btn-danger:hover { background: #F7C1C1; }
+
+  .table-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Submit area */
+  .submit-area {
+    padding: 20px 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 0.5px solid var(--c-border);
+    background: var(--c-gray-bg);
+  }
+  .btn-submit {
+    flex: 1;
+    min-width: 160px;
+    height: 44px;
+    font-size: 15px;
+    border-radius: var(--radius);
+    justify-content: center;
+  }
+  .submit-status {
+    font-size: 12px;
+    color: var(--c-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1a1a1a;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    z-index: 9999;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { background: var(--c-green-dark); }
+  #toast.error { background: #A32D2D; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 0.5px solid var(--c-border);
+  }
+  .modal-header h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .modal-close {
+    width: 28px; height: 28px;
+    border: none; background: transparent;
+    cursor: pointer; border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--c-text-muted);
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--c-gray-bg); }
+  .modal-close svg { width: 16px; height: 16px; stroke-width: 2; stroke-linecap: round; fill: none; stroke: currentColor; }
+  .modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 0.5px solid var(--c-border);
+    background: var(--c-gray-bg);
+  }
+
+  /* Responsive */
+  @media (max-width: 560px) {
+    .field-grid.cols-2,
+    .field-grid.cols-3 { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .section { padding: 16px; }
+  }
+</style>
 </head>
 <body>
-  <div id="particles-js"></div>
-  
-  <!-- Login Page -->
-  <div id="loginContainer" class="login-container">
-    <div class="login-box">
-      <div class="company-logo">
-        <img src="https://justingps.github.io/dpr/logo.png" alt="Company Logo">
-        <h1>GPS</h1>
-        <p>Field Operations Dashboard</p>
+
+<div class="page-wrapper">
+  <div class="card">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="logo-area">
+        <img src="logo.png" alt="Company Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="logo-placeholder" style="display:none;">GPS</div>
       </div>
-      
-      <div class="login-form">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <div class="input-field">
-            <i class="fas fa-user"></i>
-            <input type="text" id="username" placeholder="Enter your username" required>
+      <div>
+        <h1>Daily Site Report</h1>
+        <p>Complete and submit your daily work report</p>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">0 of 8 fields</div>
+    </div>
+
+    <form id="reportForm" novalidate>
+
+      <!-- General Info -->
+      <div class="section">
+        <div class="section-title">
+          <div class="section-title-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          General information
+        </div>
+        <div class="field-grid cols-2">
+          <div class="field-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+            <span class="field-error" id="date-error">Please select a date</span>
+          </div>
+          <div class="field-group">
+            <label for="foremanID">Foreman ID</label>
+            <input type="text" id="foremanID" name="foremanID" placeholder="e.g. FM-0012" required autocomplete="off">
+            <span class="field-error" id="foremanID-error">Required — no spaces allowed</span>
+          </div>
+          <div class="field-group">
+            <label for="wiReference">Work Instruction No.</label>
+            <div class="autocomplete-wrap">
+              <input type="text" id="wiReference" name="wiReference" placeholder="e.g. 142D" required autocomplete="off">
+              <div class="autocomplete-list" id="wiList" style="display:none;"></div>
+            </div>
+            <span class="field-error" id="wiReference-error">Only numbers, D/V, and comma allowed</span>
+          </div>
+          <div class="field-group">
+            <label for="discipline">Area / Block</label>
+            <select id="discipline" name="discipline" required>
+              <option value="" disabled selected>Select area / block</option>
+              <option value="Safha (Block-9)">Safah (Block-9)</option>
+              <option value="Wadi Latham (Block-9)">Wadi Latham (Block-9)</option>
+              <option value="Khamila (Bock-27)">Khamila (Block-27)</option>
+              <option value="Block-62">Block-62</option>
+              <option value="FRT Project">FRT Project</option>
+              <option value="Power Project">Power Project</option>
+              <option value="Infrastructure Project">Infrastructure Project</option>
+            </select>
+            <span class="field-error" id="discipline-error">Please select an area / block</span>
           </div>
         </div>
-        
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-field">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="password" placeholder="Enter your password" required>
+      </div>
+
+      <!-- Permit -->
+      <div class="section">
+        <div class="section-title">
+          <div class="section-title-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          Permit details
+        </div>
+        <div class="field-grid cols-3">
+          <div class="field-group">
+            <label for="permitNumber">Permit number</label>
+            <input type="text" id="permitNumber" name="permitNumber" placeholder="Numbers only" required inputmode="numeric">
+            <span class="field-error" id="permitNumber-error">Numbers only</span>
+          </div>
+          <div class="field-group">
+            <label for="validationTime">Validation time</label>
+            <input type="time" id="validationTime" required>
+            <span class="field-error" id="validationTime-error">Required</span>
+          </div>
+          <div class="field-group">
+            <label for="suspensionTime">Suspension time</label>
+            <input type="time" id="suspensionTime" required>
+            <span class="field-error" id="suspensionTime-error">Required</span>
           </div>
         </div>
-        
-        <div class="login-options">
-          <div class="remember-me">
-            <input type="checkbox" id="remember">
-            <label for="remember">Remember me</label>
+      </div>
+
+      <!-- Manpower -->
+      <div class="section">
+        <div class="section-title">
+          <div class="section-title-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
-          <a href="#" class="forgot-password">Forgot password?</a>
+          Manpower &amp; plant equipment
         </div>
-        
-        <button id="loginButton" class="login-button">LOGIN</button>
-        
-        <div id="loginError" class="login-error">
-          <i class="fas fa-exclamation-circle"></i> Invalid username or password
+        <div class="data-table-wrap">
+          <table class="data-table" id="personnelTable">
+            <thead>
+              <tr>
+                <th>Resource ID</th>
+                <th>Time in</th>
+                <th>Time out</th>
+                <th>Hours</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="personnelBody">
+              <tr class="empty-row"><td colspan="5">No resources added yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-actions">
+          <button type="button" class="btn btn-primary" onclick="openResourceModal()">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add resource
+          </button>
+        </div>
+        <span class="field-error" id="personnelEntries-error" style="margin-top:8px;">Please add at least one resource</span>
+      </div>
+
+      <!-- Progress -->
+      <div class="section">
+        <div class="section-title">
+          <div class="section-title-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          Progress details
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table" id="progressTable">
+            <thead>
+              <tr>
+                <th>Discipline</th>
+                <th>Activity</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="progressBody">
+              <tr class="empty-row"><td colspan="5">No progress entries added yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-actions">
+          <button type="button" class="btn btn-primary" onclick="openProgressModal()">
+            <svg viewBox="0 0 24 24" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add progress
+          </button>
+        </div>
+        <span class="field-error" id="progressEntries-error" style="margin-top:8px;">Please complete all progress entry fields</span>
+      </div>
+
+      <!-- Description -->
+      <div class="section">
+        <div class="section-title">
+          <div class="section-title-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          Description of work
+        </div>
+        <div class="field-group">
+          <textarea id="description" name="description" placeholder="Describe the work performed today…" required rows="4"></textarea>
+          <span class="field-error" id="description-error">Please describe the work performed</span>
         </div>
       </div>
-      
-      <div class="login-footer">
-        Gulf Petrochemical Services LLC. © 2023 | All Rights Reserved
+
+      <!-- Submit -->
+      <div class="submit-area">
+        <button type="button" class="btn btn-primary btn-submit" id="submitButton">
+          <svg viewBox="0 0 24 24" stroke="currentColor"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Submit report
+        </button>
+        <button type="button" class="btn btn-danger" id="clearStorageButton">
+          <svg viewBox="0 0 24 24" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Clear saved data
+        </button>
       </div>
-      
-      <div class="version-info">v2.1.4</div>
+
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Resource Modal -->
+<div class="modal-overlay" id="resourceModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="resourceModalTitle">Add resource</h2>
+      <button class="modal-close" onclick="closeResourceModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label for="modalResourceID">Resource ID</label>
+        <input type="text" id="modalResourceID" placeholder="Employee or equipment ID" autocomplete="off">
+        <span class="field-error" id="modalResourceID-error">Required — no spaces allowed</span>
+      </div>
+      <div class="field-grid cols-2">
+        <div class="field-group">
+          <label for="modalTimeIn">Time in</label>
+          <input type="time" id="modalTimeIn">
+          <span class="field-error" id="modalTimeIn-error">Required</span>
+        </div>
+        <div class="field-group">
+          <label for="modalTimeOut">Time out</label>
+          <input type="time" id="modalTimeOut">
+          <span class="field-error" id="modalTimeOut-error">Required</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeResourceModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="addResource()">Save resource</button>
     </div>
   </div>
+</div>
 
-  <!-- Dashboard Container (hidden initially) -->
-  <div class="container" id="dashboardContainer">
-    <div class="header">
-      <div class="logo-container">
-        <img src="https://justingps.github.io/dpr/logo.png" alt="Company Logo" class="logo">
-        <div class="company-info">
-          <div><strong>CONTRACTOR:</strong> GULF PETROCHEMICAL SERVICES LLC.</div>
-          <div><strong>CLIENT:</strong> OCCIDENTAL OF OMAN INC.</div>
-          <div><strong>CONTRACT:</strong> GFSC - MASTER INTEGRATED SERVICES AGREEMENT No. 24000110790</div>
-          <div><strong>TODAY:</strong> <span id="currentDate"></span></div>
-        </div>
+<!-- Progress Modal -->
+<div class="modal-overlay" id="progressModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="progressModalTitle">Add progress entry</h2>
+      <button class="modal-close" onclick="closeProgressModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label for="modalProgressDiscipline">Discipline</label>
+        <select id="modalProgressDiscipline" onchange="updateActivityDropdown()">
+          <option value="" disabled selected>Select discipline</option>
+          <option>Civil</option>
+          <option>Piping &amp; Mechanical</option>
+          <option>Electrical</option>
+          <option>Instrumentation</option>
+          <option>Commissioning</option>
+          <option>Scaffolding</option>
+          <option>Demolition/Shutdown</option>
+          <option>Shop</option>
+          <option>OHL</option>
+          <option>Painting Yard</option>
+          <option>Batching Plant</option>
+          <option>Precast Yard</option>
+          <option>Fabrication Shop</option>
+          <option>Structure Shop</option>
+          <option>Rigging</option>
+          <option>Plant</option>
+          <option>Store</option>
+          <option>E&amp;I Store</option>
+          <option>Diesel Filling</option>
+          <option>Quality Control (QC)</option>
+          <option>Non-Destructive Testing (NDT)</option>
+          <option>Civil Laboratory</option>
+          <option>Health, Safety &amp; Environment (HSE)</option>
+          <option>Material</option>
+          <option>Camp Works</option>
+          <option>Camp Equipment Works</option>
+          <option>Camp Maintenance</option>
+          <option>Administration &amp; Clinic</option>
+          <option>Survey</option>
+          <option>Borrow Pit</option>
+          <option>Hydrotesting</option>
+          <option>E&amp;I Fabrication Shop</option>
+          <option>OXY Supply</option>
+          <option>PGD Callout</option>
+          <option>Office Staff</option>
+          <option>Discipline Lead / Supervisor</option>
+          <option>Visa-Renewal/ Absentees</option>
+        </select>
+        <span class="field-error" id="modalProgressDiscipline-error">Required</span>
       </div>
-      <button id="logoutButton" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </div>
-
-    <div class="tabs">
-      <div class="tab active" onclick="openTab('summary')"><i class="fas fa-chart-bar"></i> Summary</div>
-      <div class="tab" onclick="openTab('reports')"><i class="fas fa-file-alt"></i> Reports</div>
-      <div class="tab" onclick="openTab('status')"><i class="fas fa-table"></i> Status</div>
-      <div class="tab" onclick="openTab('resource')"><i class="fas fa-users"></i> Resource</div>
-    </div>
-
-    <div id="summary" class="tab-content active">
-      <div class="card">
-        <h1>Work Analytics Dashboard</h1>
-        
-        <div class="filter-container">
-          <div class="filter-group">
-            <span class="filter-label"><i class="far fa-calendar-alt"></i> Date Range:</span>
-            <input type="date" id="summaryStartDate" class="date-picker" onchange="updateSummaryCharts()">
-            <span>to</span>
-            <input type="date" id="summaryEndDate" class="date-picker" onchange="updateSummaryCharts()">
-          </div>
-        </div>
-        
-        <div id="summaryLoading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Loading Summary Data</div>
-          <div class="loading-subtext">Analyzing work patterns and crew distributions</div>
-        </div>
-        
-        <div id="summaryContent" style="display: none;">
-          <div class="summary-grid">
-            <div>
-              <div class="chart-card">
-                <div class="chart-title">Daily Crew Allocation by Area</div>
-                <canvas id="crewAllocationChart"></canvas>
-              </div>
-              
-              <div class="chart-card">
-                <div class="chart-title">Crew Size Trend by Area</div>
-                <canvas id="crewTrendChart"></canvas>
-              </div>
-
-              <div class="chart-card">
-                <div class="chart-title">Top 5 Work Groups by Crew Utilization</div>
-                <canvas id="workGroupUtilizationChart"></canvas>
-              </div>
-            </div>
-            
-            <div>
-              <div class="card">
-                <h3>Recent Activity</h3>
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Foremen</th>
-                      <th>Crew Size</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="recentActivity">
-                    <!-- Will be populated by JavaScript -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="field-group">
+        <label for="modalActivity">Activity</label>
+        <select id="modalActivity" onchange="toggleCustomActivity(); autoSelectUnit();">
+          <option value="">Select activity</option>
+        </select>
+        <span class="field-error" id="modalActivity-error">Required</span>
+        <input type="text" id="customActivity" placeholder="Describe the custom activity" style="display:none;margin-top:6px;">
+        <span class="field-error" id="customActivity-error">Please describe the activity</span>
       </div>
-    </div>
-
-    <div id="reports" class="tab-content">
-      <div class="card">
-        <div class="filter-container">
-          <div class="filter-group">
-            <span class="filter-label"><i class="far fa-calendar-alt"></i> Date:</span>
-            <input type="date" id="reportDate" class="date-picker" onchange="applyFilters()">
-          </div>
-          <div class="filter-group">
-            <span class="filter-label"><i class="fas fa-map-marker-alt"></i> Area/Block:</span>
-            <select id="areaSelect" class="area-select" onchange="applyFilters()">
-              <option value="all">All Areas</option>
-              <option value="Safha (Block-9)">Safha (Block-9)</option>
-              <option value="Block-62">Block-62</option>
-              <option value="Other">Other</option>
-              <option value="Wadi Latham (Block-9)">Wadi Latham (Block-9)</option>
-              <option value="Infrastructure Project">Infrastructure Project</option>
-              <option value="Khamila (Bock-27)">Khamila (Bock-27)</option>
-              <option value="FRT Project">FRT Project</option>
-              <option value="Power Project">Power Project</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label"><i class="fas fa-cogs"></i> Discipline:</span>
-            <select id="disciplineSelect" class="discipline-select" onchange="applyFilters()">
-              <option value="all">All Disciplines</option>
-              <option value="Piping & Mechanical">Piping & Mechanical</option>
-              <option value="Electrical">Electrical</option>
-              <option value="Civil">Civil</option>
-              <option value="Instrumentation">Instrumentation</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label"><i class="fas fa-search"></i> WI:</span>
-            <input type="text" id="wiInput" class="wi-input" placeholder="Search WI..." oninput="applyFilters()">
-          </div>
+      <div class="field-grid cols-2">
+        <div class="field-group">
+          <label for="modalQuantity">Quantity</label>
+          <input type="number" id="modalQuantity" placeholder="0" min="0" step="any">
+          <span class="field-error" id="modalQuantity-error">Required</span>
         </div>
-        
-        <div id="reportsLoading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Loading Report Data</div>
-          <div class="loading-subtext">Please wait while we fetch your reports</div>
-        </div>
-        
-        <div id="reportsContent" style="display: none;">
-          <div id="dailySummaryContainer" class="card">
-            <!-- Daily summary will be displayed here -->
-          </div>
-          
-          <div id="reportContainer">
-            <!-- Data will be displayed here -->
-          </div>
+        <div class="field-group">
+          <label for="modalUnit">Unit</label>
+          <select id="modalUnit">
+            <option value="" disabled selected>Select unit</option>
+            <option>Meter</option>
+            <option>M2</option>
+            <option>M3</option>
+            <option>No</option>
+            <option>Ton</option>
+            <option>Kg</option>
+            <option>In. Dia</option>
+            <option>LS</option>
+          </select>
+          <span class="field-error" id="modalUnit-error">Required</span>
         </div>
       </div>
     </div>
-
-    <div id="status" class="tab-content">
-      <div class="card">
-        <h1>Active Projects Status</h1>
-        
-        <div class="filter-container">
-          <div class="filter-group">
-            <span class="filter-label"><i class="far fa-calendar-alt"></i> Select Date:</span>
-            <input type="date" id="statusDate" class="date-picker" onchange="updateStatusTable()">
-          </div>
-          <div class="filter-group">
-            <span class="filter-label"><i class="fas fa-map-marker-alt"></i> Area/Block:</span>
-            <select id="statusAreaSelect" class="area-select" onchange="updateStatusTable()">
-              <option value="all">All Areas</option>
-              <option value="Safha (Block-9)">Safha (Block-9)</option>
-              <option value="Block-62">Block-62</option>
-              <option value="Other">Other</option>
-              <option value="Wadi Latham (Block-9)">Wadi Latham (Block-9)</option>
-              <option value="Infrastructure Project">Infrastructure Project</option>
-              <option value="Khamila (Bock-27)">Khamila (Bock-27)</option>
-              <option value="FRT Project">FRT Project</option>
-              <option value="Power Project">Power Project</option>
-            </select>
-          </div>
-        </div>
-        
-        <div id="statusLoading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Loading Status Data</div>
-          <div class="loading-subtext">Fetching active projects information</div>
-        </div>
-        
-        <div id="statusContent" style="display: none;">
-          <div class="card">
-            <h3 id="statusTableTitle">Active Projects on [Selected Date]</h3>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-label">Total Projects</div>
-                <div id="totalProjects" class="stat-value">0</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Total Crew Size</div>
-                <div id="totalCrewSize" class="stat-value">0</div>
-              </div>
-            </div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>SL. NO.</th>
-                  <th>ID</th>
-                  <th>CREW LEAD</th>
-                  <th>PROJECTS</th>
-                  <th>AREA</th>
-                  <th>CREW SIZE</th>
-                  <th>DISCIPLINE</th>
-                </tr>
-              </thead>
-              <tbody id="statusTableBody">
-                <!-- Will be populated by JavaScript -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="resource" class="tab-content">
-      <div class="card">
-        <h1>Resource Allocation</h1>
-        
-        <div class="filter-container">
-          <div class="filter-group">
-            <span class="filter-label"><i class="far fa-calendar-alt"></i> Select Date:</span>
-            <input type="date" id="resourceDate" class="date-picker" onchange="updateResourceTables()">
-          </div>
-          <div class="filter-group">
-            <span class="filter-label"><i class="fas fa-map-marker-alt"></i> Area/Block:</span>
-            <select id="resourceAreaSelect" class="area-select" onchange="updateResourceTables()">
-              <option value="all">All Areas</option>
-              <option value="Safha (Block-9)">Safha (Block-9)</option>
-              <option value="Block-62">Block-62</option>
-              <option value="Other">Other</option>
-              <option value="Wadi Latham (Block-9)">Wadi Latham (Block-9)</option>
-              <option value="Infrastructure Project">Infrastructure Project</option>
-              <option value="Khamila (Bock-27)">Khamila (Bock-27)</option>
-              <option value="FRT Project">FRT Project</option>
-              <option value="Power Project">Power Project</option>
-            </select>
-          </div>
-        </div>
-        
-        <div id="resourceLoading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Loading Resource Data</div>
-          <div class="loading-subtext">Fetching resource allocation details</div>
-        </div>
-        
-        <div id="resourceContent" style="display: none;">
-          <div class="card">
-            <h3 id="resourceTableTitle">Resources on [Selected Date]</h3>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-label">Total Manpower</div>
-                <div id="totalManpower" class="stat-value">0</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Total Equipment</div>
-                <div id="totalEquipment" class="stat-value">0</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Not Found</div>
-                <div id="totalNotFound" class="stat-value">0</div>
-              </div>
-            </div>
-            
-            <div class="card">
-              <h3>Manpower Resources</h3>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Resource ID</th>
-                    <th>Designation</th>
-                    <th>Project (WI NO)</th>
-                    <th>Area</th>
-                    <th>Foreman</th>
-                  </tr>
-                </thead>
-                <tbody id="manpowerTableBody">
-                  <!-- Will be populated by JavaScript -->
-                </tbody>
-              </table>
-            </div>
-            
-            <div class="card">
-              <h3>Equipment Resources</h3>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Resource ID</th>
-                    <th>Designation</th>
-                    <th>Project (WI NO)</th>
-                    <th>Area</th>
-                    <th>Foreman</th>
-                  </tr>
-                </thead>
-                <tbody id="equipmentTableBody">
-                  <!-- Will be populated by JavaScript -->
-                </tbody>
-              </table>
-            </div>
-            
-            <div class="card">
-              <h3>Not Found Resources</h3>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Resource ID</th>
-                    <th>Designation</th>
-                    <th>Project (WI NO)</th>
-                    <th>Area</th>
-                    <th>Foreman</th>
-                  </tr>
-                </thead>
-                <tbody id="notFoundTableBody">
-                  <!-- Will be populated by JavaScript -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeProgressModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="addProgressEntry()">Save entry</button>
     </div>
   </div>
+</div>
 
-  <script>
-    // Initialize particles.js
-    particlesJS('particles-js', {
-      particles: {
-        number: { value: 80, density: { enable: true, value_area: 800 } },
-        color: { value: '#ffffff' },
-        shape: { type: 'circle', stroke: { width: 0, color: '#000000' } },
-        opacity: { value: 0.5, random: false },
-        size: { value: 3, random: true },
-        line_linked: {
-          enable: true,
-          distance: 150,
-          color: '#ffffff',
-          opacity: 0.4,
-          width: 1
-        },
-        move: {
-          enable: true,
-          speed: 2,
-          direction: 'none',
-          random: false,
-          straight: false,
-          out_mode: 'out',
-          bounce: false
-        }
-      },
-      interactivity: {
-        detect_on: 'canvas',
-        events: {
-          onhover: { enable: true, mode: 'grab' },
-          onclick: { enable: true, mode: 'push' },
-          resize: true
-        },
-        modes: {
-          grab: { distance: 140, line_linked: { opacity: 1 } },
-          push: { particles_nb: 4 }
-        }
-      },
-      retina_detect: true
+<script>
+let personnelEntries = [];
+let progressEntries = [];
+let editingIndex = -1;
+let editingType = null;
+
+const wiNumbers = Array.from({length:1500},(_,i)=>`${i+1}D`);
+
+const activities = {
+  "Civil":["Survey & Marking","Trial Pit Excavation","Excavation (Manual)","Excavation (Mechanical)","Trench Excavation (Manual)","Trench Excavation (Mechanical)","PCC","Foundation Installation","In-Situ Casting","Protective Coating","Backfilling","Compaction"],
+  "Piping & Mechanical":["Piping Spool Erection","Piping Field Welding","Valve Erection","Flowline/Pipeline Stringing","Flowline/Pipeline Erection","Flowline/Pipeline Welding","Valve Hydrotesting","Field Hydrotesting","Flange Torquing","Support Structure Installation"],
+  "Electrical":["HV Cable Laying","LV Cable Laying","HV Glanding & Termination","LV Glanding & Termination","Straight Through Joints","Earth Pits","Earth Bus Bar","Earth Cables Laying","Earth Cables Termination","Branch Connectors","Flexible Braided Jumpers","PVC Pipe Installation","Concrete Duct Banks","Indoor Lighting","Outdoor Lighting","Exit Sign Lights","Power Receptacles & Sockets","Exhaust Fans","Air Conditioners","Disconnector with Support Structure","Lighting Poles","JB Installation","DB Installation","VFD","Control Panels","Switchgear","Transformers","OHL Guard Poles","OHL Conductors","OHL Concrete Pole Installation","OHL Wooden Pole Installation","Perforated Trays with Cover","Ladder Trays with Cover","Cable Tray Supports","Nameplates","Kopex Conduit","Concrete Block Installation"],
+  "Instrumentation":["Cable Laying (power, control, fiber optic, communication)","Glanding & Termination","Earth Cable Laying & Termination","Branch Connector Installation","Conduits & Pipes Installation","Junction Box (JB) Installation & Supports","Panel Installation (IFB, PLC, RTU, FO Patch, Telecom)","Concrete Duct & Block Installation","Name Plate Installation","Kopex Conduit Installation","Cable Tray & Supports Installation","Instrument Installation (Transmitters, Gauges, Indicators)","Fire & Gas (F&G) Installation","Support Installations (F&G)","PLC Installation & Wiring","Tubing Installation","Function Testing & Calibration"],
+  "Commissioning":["Loop Testing","Function Test","Calibration"],
+  "Scaffolding":["Erection","Dismantling"],
+  "Demolition/Shutdown":["Foundation","Cables","Instruments"],
+  "Shop":["Piping Spool Fabrication","Hydrotesting Of Pipe Spools","Blasting & Painting Pipe Spools","Support Structure Fabrication","Blasting & Painting of Structures","Reinforcement Work for Foundations","Pre-Casting and Coating of Foundations"],
+  "OHL":["Pole Concreting & Lapping","Pole Drilling","Pole Concrete Curing","Conductor Stringing","Pole Dressing","Earthpit Drilling","Pole Shifting","Autorecloser Installation","Barbed Wire Installation"],
+  "Painting Yard":["Painting"],
+  "Batching Plant":["Batching"],
+  "Precast Yard":["Casting"],
+  "Fabrication Shop":["Fabrication"],
+  "Structure Shop":["Fabrication","Assembly"],
+  "Rigging":["Lifting"],
+  "Plant":["Maintenance"],
+  "Store":["Material Handling"],
+  "E&I Store":["Material Handling"],
+  "Diesel Filling":["Refueling"],
+  "Quality Control (QC)":["Inspection"],
+  "Non-Destructive Testing (NDT)":["Inspection"],
+  "Civil Laboratory":["Testing"],
+  "Health, Safety & Environment (HSE)":["Site Safety"],
+  "Material":["Handling"],
+  "Camp Works":["Maintenance"],
+  "Camp Equipment Works":["Maintenance"],
+  "Camp Maintenance":["Maintenance"],
+  "Administration & Clinic":["Administration","Site-Office","Clinic"],
+  "Survey":["Surveying"],
+  "Borrow Pit":["Excavation"],
+  "Hydrotesting":["Spool Hydrotesting"],
+  "E&I Fabrication Shop":["Fabrication"],
+  "OXY Supply":["Staff Supply"],
+  "PGD Callout":["Staff Supply"],
+  "Office Staff":["Office Staff"],
+  "Discipline Lead / Supervisor":["Discipline Lead / Supervisor"],
+  "Visa-Renewal/ Absentees":["Visa-Renewal / Absentees"]
+};
+
+const activityUnitMap = {
+  "Survey & Marking":"Meter","Trial Pit Excavation":"No","Excavation (Manual)":"M3","Excavation (Mechanical)":"M3",
+  "Trench Excavation (Manual)":"Meter","Trench Excavation (Mechanical)":"Meter","PCC":"M3","Foundation Installation":"No",
+  "In-Situ Casting":"M3","Protective Coating":"M2","Backfilling":"M3","Compaction":"M2",
+  "Piping Spool Erection":"No","Piping Field Welding":"In. Dia","Valve Erection":"No",
+  "Flowline/Pipeline Stringing":"Meter","Flowline/Pipeline Erection":"Meter","Flowline/Pipeline Welding":"In. Dia",
+  "Valve Hydrotesting":"No","Field Hydrotesting":"No","Flange Torquing":"No","Support Structure Installation":"No",
+  "HV Cable Laying":"Meter","LV Cable Laying":"Meter","HV Glanding & Termination":"No","LV Glanding & Termination":"No",
+  "Straight Through Joints":"No","Earth Pits":"No","Earth Bus Bar":"Meter","Earth Cables Laying":"Meter",
+  "Earth Cables Termination":"No","Branch Connectors":"No","Flexible Braided Jumpers":"No",
+  "PVC Pipe Installation":"Meter","Concrete Duct Banks":"Meter","Indoor Lighting":"No","Outdoor Lighting":"No",
+  "Exit Sign Lights":"No","Power Receptacles & Sockets":"No","Exhaust Fans":"No","Air Conditioners":"No",
+  "Disconnector with Support Structure":"No","Lighting Poles":"No","JB Installation":"No","DB Installation":"No",
+  "VFD":"No","Control Panels":"No","Switchgear":"No","Transformers":"No","OHL Guard Poles":"No",
+  "OHL Conductors":"Meter","OHL Concrete Pole Installation":"No","OHL Wooden Pole Installation":"No",
+  "Perforated Trays with Cover":"Meter","Ladder Trays with Cover":"Meter","Cable Tray Supports":"No",
+  "Nameplates":"No","Kopex Conduit":"Meter","Concrete Block Installation":"No",
+  "Cable Laying (power, control, fiber optic, communication)":"Meter","Glanding & Termination":"No",
+  "Earth Cable Laying & Termination":"Meter","Branch Connector Installation":"No",
+  "Conduits & Pipes Installation":"Meter","Junction Box (JB) Installation & Supports":"No",
+  "Panel Installation (IFB, PLC, RTU, FO Patch, Telecom)":"No","Concrete Duct & Block Installation":"No",
+  "Name Plate Installation":"No","Kopex Conduit Installation":"Meter","Cable Tray & Supports Installation":"Meter",
+  "Instrument Installation (Transmitters, Gauges, Indicators)":"No","Fire & Gas (F&G) Installation":"No",
+  "Support Installations (F&G)":"No","PLC Installation & Wiring":"No","Tubing Installation":"Meter",
+  "Function Testing & Calibration":"No","Loop Testing":"No","Function Test":"No","Calibration":"No",
+  "Erection":"No","Dismantling":"No","Foundation":"No","Cables":"Meter","Instruments":"No",
+  "Piping Spool Fabrication":"No","Hydrotesting Of Pipe Spools":"No","Blasting & Painting Pipe Spools":"No",
+  "Support Structure Fabrication":"No","Blasting & Painting of Structures":"No",
+  "Reinforcement Work for Foundations":"Ton","Pre-Casting and Coating of Foundations":"No",
+  "Pole Concreting & Lapping":"No","Pole Drilling":"No","Pole Concrete Curing":"No",
+  "Conductor Stringing":"Meter","Pole Dressing":"No","Earthpit Drilling":"No","Pole Shifting":"No",
+  "Autorecloser Installation":"No","Barbed Wire Installation":"Meter"
+};
+
+// --- Utilities ---
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type;
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function calcHours(tin, tout) {
+  if (!tin || !tout) return '-';
+  const [h1,m1] = tin.split(':').map(Number);
+  const [h2,m2] = tout.split(':').map(Number);
+  let diff = (h2*60+m2) - (h1*60+m1);
+  if (diff < 0) diff += 1440;
+  return (diff/60).toFixed(1) + 'h';
+}
+
+function svgEdit() {
+  return `<svg viewBox="0 0 24 24" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+}
+function svgDel() {
+  return `<svg viewBox="0 0 24 24" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+}
+
+// --- Progress tracker ---
+const trackedFields = ['date','permitNumber','validationTime','suspensionTime','foremanID','wiReference','discipline','description'];
+function updateProgress() {
+  let filled = trackedFields.filter(id => {
+    const el = document.getElementById(id);
+    return el && el.value.trim() !== '' && el.value !== '';
+  }).length;
+  const pct = Math.round((filled / trackedFields.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${filled} of ${trackedFields.length} fields`;
+}
+
+// --- WI Autocomplete ---
+function initWIAutocomplete() {
+  const input = document.getElementById('wiReference');
+  const list = document.getElementById('wiList');
+
+  input.addEventListener('input', function() {
+    const val = this.value.trim();
+    list.innerHTML = '';
+    if (!val) { list.style.display = 'none'; return; }
+    const matches = wiNumbers.filter(n => n.startsWith(val.toUpperCase())).slice(0, 10);
+    if (!matches.length) { list.style.display = 'none'; return; }
+    matches.forEach(m => {
+      const d = document.createElement('div');
+      d.textContent = m;
+      d.addEventListener('mousedown', () => {
+        input.value = m;
+        list.style.display = 'none';
+        updateProgress();
+      });
+      list.appendChild(d);
     });
+    list.style.display = 'block';
+  });
 
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRMvKP4HfM5zZpM3RjdpPcX0DZA3yWpGhXt_lqpzblpbIQW7vcJswPPm8gMdmVZ366FCUwZGLCsF1fb/pub?gid=0&single=true&output=csv';
-    
-    let allData = [];
-    let charts = {};
-    
-    // Start loading data immediately when the page loads
-    document.addEventListener('DOMContentLoaded', () => {
-      loadData();
+  input.addEventListener('keydown', function(e) {
+    const items = list.querySelectorAll('div');
+    const active = list.querySelector('.active');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = active ? active.nextElementSibling : items[0];
+      if (next) { if(active) active.classList.remove('active'); next.classList.add('active'); }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = active ? active.previousElementSibling : null;
+      if (prev) { active.classList.remove('active'); prev.classList.add('active'); }
+    } else if (e.key === 'Enter' && active) {
+      e.preventDefault();
+      input.value = active.textContent;
+      list.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!input.contains(e.target)) list.style.display = 'none';
+  });
+
+  input.addEventListener('keypress', e => {
+    const allowed = /[0-9,DdVv]/;
+    const special = [8,9,13,27,35,36,37,38,39,40,46];
+    if (!allowed.test(e.key) && !special.includes(e.keyCode)) {
+      e.preventDefault();
+      setFieldError('wiReference', true, 'Only numbers, D/V, and comma allowed');
+      setTimeout(() => setFieldError('wiReference', false), 2500);
+    }
+  });
+
+  input.addEventListener('paste', e => {
+    const pasted = e.clipboardData.getData('text');
+    if (!/^[0-9,DVdv]*$/.test(pasted)) {
+      e.preventDefault();
+      showToast('Paste blocked — only numbers, D/V, comma allowed', 'error');
+    }
+  });
+}
+
+// --- Field validation ---
+function setFieldError(id, show, msg) {
+  const el = document.getElementById(id);
+  const err = document.getElementById(id + '-error');
+  if (!el) return;
+  if (show) {
+    el.classList.add('error');
+    if (err) { if (msg) err.textContent = msg; err.classList.add('show'); }
+  } else {
+    el.classList.remove('error');
+    if (err) err.classList.remove('show');
+  }
+}
+
+function validateField(id) {
+  const el = document.getElementById(id);
+  if (!el) return true;
+  const val = el.value.trim();
+  let ok = val !== '';
+
+  if (id === 'permitNumber' && val) ok = /^\d+$/.test(val);
+  if (id === 'foremanID' && val) ok = !/\s/.test(val);
+  if (id === 'wiReference' && val) ok = /^[0-9,DVdv]+$/.test(val);
+
+  setFieldError(id, !ok);
+  return ok;
+}
+
+function validateAll() {
+  let ok = true;
+  trackedFields.forEach(id => { if (!validateField(id)) ok = false; });
+
+  const pErr = document.getElementById('personnelEntries-error');
+  if (personnelEntries.length === 0) { pErr.classList.add('show'); ok = false; }
+  else pErr.classList.remove('show');
+
+  return ok;
+}
+
+// --- Personnel Table ---
+function updatePersonnelTable() {
+  const tbody = document.getElementById('personnelBody');
+  if (!personnelEntries.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No resources added yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = personnelEntries.map((e,i) => `
+    <tr>
+      <td><strong>${e.id}</strong></td>
+      <td>${e.timeIn}</td>
+      <td>${e.timeOut}</td>
+      <td><span class="badge badge-green">${calcHours(e.timeIn,e.timeOut)}</span></td>
+      <td><div class="actions-cell">
+        <button type="button" class="icon-btn edit" onclick="openResourceModal(${i})" title="Edit">${svgEdit()}</button>
+        <button type="button" class="icon-btn del" onclick="removePersonnel(${i})" title="Remove">${svgDel()}</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openResourceModal(idx = -1) {
+  editingIndex = idx;
+  editingType = 'personnel';
+  const modal = document.getElementById('resourceModal');
+  document.getElementById('resourceModalTitle').textContent = idx >= 0 ? 'Edit resource' : 'Add resource';
+
+  if (idx >= 0) {
+    const e = personnelEntries[idx];
+    document.getElementById('modalResourceID').value = e.id;
+    document.getElementById('modalTimeIn').value = e.timeIn;
+    document.getElementById('modalTimeOut').value = e.timeOut;
+  } else {
+    document.getElementById('modalResourceID').value = '';
+    if (personnelEntries.length) {
+      const last = personnelEntries[personnelEntries.length-1];
+      document.getElementById('modalTimeIn').value = last.timeIn;
+      document.getElementById('modalTimeOut').value = last.timeOut;
+    } else {
+      document.getElementById('modalTimeIn').value = '';
+      document.getElementById('modalTimeOut').value = '';
+    }
+  }
+
+  ['modalResourceID','modalTimeIn','modalTimeOut'].forEach(id => {
+    document.getElementById(id).classList.remove('error');
+    document.getElementById(id+'-error').classList.remove('show');
+  });
+
+  modal.classList.add('open');
+  document.getElementById('modalResourceID').focus();
+}
+
+function closeResourceModal() {
+  document.getElementById('resourceModal').classList.remove('open');
+  editingIndex = -1; editingType = null;
+}
+
+document.getElementById('resourceModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('resourceModal')) closeResourceModal();
+});
+
+function addResource() {
+  const id = document.getElementById('modalResourceID').value.trim();
+  const tin = document.getElementById('modalTimeIn').value;
+  const tout = document.getElementById('modalTimeOut').value;
+  let ok = true;
+
+  if (!id || /\s/.test(id)) {
+    setFieldError('modalResourceID', true, !id ? 'Required' : 'No spaces allowed');
+    ok = false;
+  } else setFieldError('modalResourceID', false);
+
+  if (!tin) { setFieldError('modalTimeIn', true); ok = false; }
+  else setFieldError('modalTimeIn', false);
+
+  if (!tout) { setFieldError('modalTimeOut', true); ok = false; }
+  else setFieldError('modalTimeOut', false);
+
+  if (!ok) return;
+
+  const entry = { id, timeIn: tin, timeOut: tout };
+  if (editingIndex >= 0) personnelEntries[editingIndex] = entry;
+  else personnelEntries.push(entry);
+
+  updatePersonnelTable();
+  closeResourceModal();
+  saveFormData();
+  showToast(editingIndex >= 0 ? 'Resource updated' : 'Resource added');
+}
+
+function removePersonnel(idx) {
+  if (!confirm('Remove this resource?')) return;
+  personnelEntries.splice(idx, 1);
+  updatePersonnelTable();
+  saveFormData();
+  showToast('Resource removed');
+}
+
+// --- Progress Table ---
+function updateProgressTable() {
+  const tbody = document.getElementById('progressBody');
+  if (!progressEntries.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No progress entries added yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = progressEntries.map((e,i) => `
+    <tr>
+      <td><span class="badge badge-blue">${e.discipline}</span></td>
+      <td>${e.activity}</td>
+      <td><strong>${e.quantity}</strong></td>
+      <td><span class="badge badge-amber">${e.unit}</span></td>
+      <td><div class="actions-cell">
+        <button type="button" class="icon-btn edit" onclick="openProgressModal(${i})">${svgEdit()}</button>
+        <button type="button" class="icon-btn del" onclick="removeProgress(${i})">${svgDel()}</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function updateActivityDropdown() {
+  const disc = document.getElementById('modalProgressDiscipline').value;
+  const sel = document.getElementById('modalActivity');
+  sel.innerHTML = '<option value="">Select activity</option>';
+  (activities[disc] || []).forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    sel.appendChild(o);
+  });
+  const other = document.createElement('option');
+  other.value = 'Other'; other.textContent = 'Other';
+  sel.appendChild(other);
+}
+
+function toggleCustomActivity() {
+  const isOther = document.getElementById('modalActivity').value === 'Other';
+  const ci = document.getElementById('customActivity');
+  ci.style.display = isOther ? 'block' : 'none';
+  if (!isOther) document.getElementById('customActivity-error').classList.remove('show');
+}
+
+function autoSelectUnit() {
+  const act = document.getElementById('modalActivity').value;
+  if (activityUnitMap[act]) document.getElementById('modalUnit').value = activityUnitMap[act];
+}
+
+function openProgressModal(idx = -1) {
+  editingIndex = idx;
+  editingType = 'progress';
+  const modal = document.getElementById('progressModal');
+  document.getElementById('progressModalTitle').textContent = idx >= 0 ? 'Edit progress entry' : 'Add progress entry';
+
+  document.getElementById('modalProgressDiscipline').value = '';
+  document.getElementById('modalActivity').innerHTML = '<option value="">Select activity</option>';
+  document.getElementById('modalQuantity').value = '';
+  document.getElementById('modalUnit').value = '';
+  document.getElementById('customActivity').value = '';
+  document.getElementById('customActivity').style.display = 'none';
+
+  if (idx >= 0) {
+    const e = progressEntries[idx];
+    document.getElementById('modalProgressDiscipline').value = e.discipline;
+    updateActivityDropdown();
+    setTimeout(() => {
+      const actSel = document.getElementById('modalActivity');
+      const exists = [...actSel.options].some(o => o.value === e.activity);
+      if (exists) { actSel.value = e.activity; }
+      else { actSel.value = 'Other'; document.getElementById('customActivity').value = e.activity; document.getElementById('customActivity').style.display = 'block'; }
+      document.getElementById('modalQuantity').value = e.quantity;
+      document.getElementById('modalUnit').value = e.unit;
+    }, 30);
+  }
+
+  ['modalProgressDiscipline','modalActivity','modalQuantity','modalUnit','customActivity'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('error');
+    const err = document.getElementById(id+'-error');
+    if (err) err.classList.remove('show');
+  });
+
+  modal.classList.add('open');
+  document.getElementById('modalProgressDiscipline').focus();
+}
+
+function closeProgressModal() {
+  document.getElementById('progressModal').classList.remove('open');
+  editingIndex = -1; editingType = null;
+}
+
+document.getElementById('progressModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('progressModal')) closeProgressModal();
+});
+
+function addProgressEntry() {
+  const disc = document.getElementById('modalProgressDiscipline').value;
+  let act = document.getElementById('modalActivity').value;
+  const qty = document.getElementById('modalQuantity').value;
+  const unit = document.getElementById('modalUnit').value;
+  let ok = true;
+
+  if (!disc) { setFieldError('modalProgressDiscipline', true); ok = false; }
+  else setFieldError('modalProgressDiscipline', false);
+
+  if (!act) { setFieldError('modalActivity', true); ok = false; }
+  else setFieldError('modalActivity', false);
+
+  if (act === 'Other') {
+    act = document.getElementById('customActivity').value.trim();
+    if (!act) { setFieldError('customActivity', true); ok = false; }
+    else setFieldError('customActivity', false);
+  }
+
+  if (!qty) { setFieldError('modalQuantity', true); ok = false; }
+  else setFieldError('modalQuantity', false);
+
+  if (!unit) { setFieldError('modalUnit', true); ok = false; }
+  else setFieldError('modalUnit', false);
+
+  if (!ok) return;
+
+  const entry = { discipline: disc, activity: act, quantity: qty, unit };
+  if (editingIndex >= 0) progressEntries[editingIndex] = entry;
+  else progressEntries.push(entry);
+
+  updateProgressTable();
+  closeProgressModal();
+  saveFormData();
+  showToast(editingIndex >= 0 ? 'Entry updated' : 'Progress entry added');
+}
+
+function removeProgress(idx) {
+  if (!confirm('Remove this progress entry?')) return;
+  progressEntries.splice(idx, 1);
+  updateProgressTable();
+  saveFormData();
+  showToast('Entry removed');
+}
+
+// --- LocalStorage ---
+function saveFormData() {
+  const data = {
+    validationTime: document.getElementById('validationTime').value,
+    suspensionTime: document.getElementById('suspensionTime').value,
+    foremanID: document.getElementById('foremanID').value,
+    wiReference: document.getElementById('wiReference').value,
+    discipline: document.getElementById('discipline').value,
+    personnelEntries,
+    progressEntries,
+    lastSaved: Date.now()
+  };
+  localStorage.setItem('dailySiteReportData', JSON.stringify(data));
+}
+
+function loadSavedData() {
+  try {
+    const raw = localStorage.getItem('dailySiteReportData');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.validationTime) document.getElementById('validationTime').value = data.validationTime;
+    if (data.suspensionTime) document.getElementById('suspensionTime').value = data.suspensionTime;
+    if (data.foremanID) document.getElementById('foremanID').value = data.foremanID;
+    if (data.wiReference) document.getElementById('wiReference').value = data.wiReference;
+    if (data.discipline) document.getElementById('discipline').value = data.discipline;
+    if (Array.isArray(data.personnelEntries)) { personnelEntries = data.personnelEntries; updatePersonnelTable(); }
+    if (Array.isArray(data.progressEntries)) { progressEntries = data.progressEntries; updateProgressTable(); }
+  } catch(e) { console.error('Load error', e); }
+}
+
+function clearStoredData() {
+  if (!confirm('Clear all saved data? This cannot be undone.')) return;
+  localStorage.removeItem('dailySiteReportData');
+  personnelEntries = [];
+  progressEntries = [];
+  updatePersonnelTable();
+  updateProgressTable();
+  document.getElementById('reportForm').reset();
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('date').value = today;
+  document.getElementById('permitNumber').value = '';
+  document.getElementById('description').value = '';
+  updateProgress();
+  showToast('Saved data cleared');
+}
+
+// --- Submit ---
+function validateAndSubmit() {
+  if (!validateAll()) {
+    showToast('Please fill in all required fields', 'error');
+    const firstError = document.querySelector('.error');
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const btn = document.getElementById('submitButton');
+  btn.disabled = true;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Submitting…`;
+
+  const postingDateTime = new Date().toISOString().slice(0,19).replace('T',' ');
+  const formData = {
+    date: document.getElementById('date').value,
+    foremanID: document.getElementById('foremanID').value,
+    wiReference: document.getElementById('wiReference').value,
+    discipline: document.getElementById('discipline').value,
+    description: document.getElementById('description').value,
+    personnel: JSON.stringify(personnelEntries),
+    progressEntries: JSON.stringify(progressEntries),
+    permitNumber: document.getElementById('permitNumber').value,
+    validationTime: document.getElementById('validationTime').value,
+    suspensionTime: document.getElementById('suspensionTime').value,
+    postingDateTime,
+    deviceDetails: JSON.stringify({ userAgent: navigator.userAgent, platform: navigator.platform, screenResolution: `${screen.width}x${screen.height}` })
+  };
+
+  const params = new URLSearchParams(formData);
+
+  fetch(`https://script.google.com/macros/s/AKfycbxO0pWIOFOwLOnTHd7FtrGNItxDI_VWOuv01o1c2wdxSTXdTDz3NNEkeFwQJikqHCNyNA/exec?${params}`)
+    .then(r => r.text())
+    .then(() => {
+      showToast('Report submitted successfully!', 'success');
+      saveFormData();
+      personnelEntries = [];
+      progressEntries = [];
+      updatePersonnelTable();
+      updateProgressTable();
+      document.getElementById('permitNumber').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      updateProgress();
+    })
+    .catch(err => {
+      console.error(err);
+      showToast('Submission failed — please try again', 'error');
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Submit report`;
     });
-    
-    // Login functionality
-    const validCredentials = {
-      username: '\x67\x70\x73\x6f\x6d\x61\x6e',
-      password: '\x67\x70\x73\x6f\x6d\x61\x6e'
-    };
+}
 
-    document.getElementById('loginButton').addEventListener('click', () => {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const loginError = document.getElementById('loginError');
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const dateEl = document.getElementById('date');
+  dateEl.value = today;
+  dateEl.min = yesterday;
+  dateEl.max = today;
+  dateEl.addEventListener('change', function() {
+    if (this.value !== today && this.value !== yesterday) this.value = today;
+  });
 
-      if (username === validCredentials.username && password === validCredentials.password) {
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('dashboardContainer').style.display = 'block';
-        document.getElementById('particles-js').style.display = 'none';
-        document.body.style.overflow = 'auto';
-        loginError.style.display = 'none';
-        
-        // Initialize dashboard after successful login
-        initializeDashboard();
-      } else {
-        loginError.style.display = 'flex';
-      }
-    });
+  document.getElementById('permitNumber').value = '';
+  document.getElementById('description').value = '';
 
-    // Allow Enter key to trigger login
-    document.getElementById('password').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        document.getElementById('loginButton').click();
-      }
-    });
+  initWIAutocomplete();
+  loadSavedData();
 
-    // Logout functionality
-    document.getElementById('logoutButton').addEventListener('click', () => {
-      document.getElementById('dashboardContainer').style.display = 'none';
-      document.getElementById('loginContainer').style.display = 'flex';
-      document.getElementById('particles-js').style.display = 'block';
-      document.body.style.overflow = 'hidden';
-      document.getElementById('username').value = '';
-      document.getElementById('password').value = '';
-      document.getElementById('loginError').style.display = 'none';
-    });
+  // Permit number: numbers only
+  document.getElementById('permitNumber').addEventListener('keypress', e => {
+    if (!/[0-9]/.test(e.key) && ![8,9,13,27,46].includes(e.keyCode)) e.preventDefault();
+  });
 
-    function initializeDashboard() {
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      const oneWeekAgo = new Date(yesterday);
-      oneWeekAgo.setDate(yesterday.getDate() - 20); // One week range ending yesterday
-      
-      document.getElementById('reportDate').valueAsDate = yesterday;
-      document.getElementById('statusDate').valueAsDate = yesterday;
-      document.getElementById('resourceDate').valueAsDate = yesterday;
-      document.getElementById('summaryStartDate').valueAsDate = oneWeekAgo;
-      document.getElementById('summaryEndDate').valueAsDate = yesterday;
-      document.getElementById('currentDate').textContent = formatDateForDisplay(today);
-      
-      // If data is already preloaded, show it immediately
-      if (allData.length > 0) {
-        document.getElementById('summaryLoading').style.display = 'none';
-        document.getElementById('summaryContent').style.display = 'block';
-        document.getElementById('reportsLoading').style.display = 'none';
-        document.getElementById('reportsContent').style.display = 'block';
-        document.getElementById('statusLoading').style.display = 'none';
-        document.getElementById('statusContent').style.display = 'block';
-        document.getElementById('resourceLoading').style.display = 'none';
-        document.getElementById('resourceContent').style.display = 'block';
-        
-        applyFilters();
-        if (document.getElementById('status').classList.contains('active')) {
-          updateStatusTable();
-        }
-        if (document.getElementById('summary').classList.contains('active')) {
-          updateSummaryCharts();
-        }
-        if (document.getElementById('resource').classList.contains('active')) {
-          updateResourceTables();
-        }
-      } else {
-        // If data isn't preloaded yet, show loading indicators
-        document.getElementById('summaryLoading').style.display = 'flex';
-        document.getElementById('reportsLoading').style.display = 'flex';
-        document.getElementById('statusLoading').style.display = 'flex';
-        document.getElementById('resourceLoading').style.display = 'flex';
-      }
+  // Foreman ID: no spaces
+  document.getElementById('foremanID').addEventListener('keypress', e => {
+    if (e.key === ' ') e.preventDefault();
+  });
+
+  // Live progress + validation
+  trackedFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => { updateProgress(); validateField(id); });
+      el.addEventListener('change', () => { updateProgress(); validateField(id); });
     }
-    
-    function openTab(tabName) {
-      const tabContents = document.getElementsByClassName('tab-content');
-      for (let i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.remove('active');
-      }
-      
-      const tabs = document.getElementsByClassName('tab');
-      for (let i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-      }
-      
-      document.getElementById(tabName).classList.add('active');
-      event.currentTarget.classList.add('active');
-      
-      if (tabName === 'summary' && allData.length > 0) {
-        updateSummaryCharts();
-      } else if (tabName === 'status' && allData.length > 0) {
-        updateStatusTable();
-      } else if (tabName === 'resource' && allData.length > 0) {
-        updateResourceTables();
-      }
-    }
-    
-    function formatDateForDisplay(date) {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const day = date.getDate();
-      const month = months[date.getMonth()];
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    }
-    
-    function loadData() {
-      fetch(SHEET_URL)
-        .then(response => response.text())
-        .then(csvData => {
-          allData = parseCSV(csvData);
-          
-          // If user is already logged in (unlikely but possible), update the dashboard
-          if (document.getElementById('dashboardContainer').style.display === 'block') {
-            document.getElementById('summaryLoading').style.display = 'none';
-            document.getElementById('summaryContent').style.display = 'block';
-            document.getElementById('reportsLoading').style.display = 'none';
-            document.getElementById('reportsContent').style.display = 'block';
-            document.getElementById('statusLoading').style.display = 'none';
-            document.getElementById('statusContent').style.display = 'block';
-            document.getElementById('resourceLoading').style.display = 'none';
-            document.getElementById('resourceContent').style.display = 'block';
-            
-            applyFilters();
-            if (document.getElementById('status').classList.contains('active')) {
-              updateStatusTable();
-            }
-            if (document.getElementById('summary').classList.contains('active')) {
-              updateSummaryCharts();
-            }
-            if (document.getElementById('resource').classList.contains('active')) {
-              updateResourceTables();
-            }
-          }
-        })
-        .catch(error => {
-          console.error('Error loading data:', error);
-          // If user is logged in, show error messages
-          if (document.getElementById('dashboardContainer').style.display === 'block') {
-            document.getElementById('reportContainer').innerHTML = 
-              '<p class="no-data">Error loading data. Please try again later.</p>';
-            document.getElementById('statusTableBody').innerHTML = 
-              '<tr><td colspan="7" class="no-data">Error loading data. Please try again later.</td></tr>';
-            document.getElementById('manpowerTableBody').innerHTML = 
-              '<tr><td colspan="6" class="no-data">Error loading data. Please try again later.</td></tr>';
-            document.getElementById('equipmentTableBody').innerHTML = 
-              '<tr><td colspan="6" class="no-data">Error loading data. Please try again later.</td></tr>';
-            document.getElementById('notFoundTableBody').innerHTML = 
-              '<tr><td colspan="6" class="no-data">Error loading data. Please try again later.</td></tr>';
-            
-            document.getElementById('summaryLoading').style.display = 'none';
-            document.getElementById('reportsLoading').style.display = 'none';
-            document.getElementById('statusLoading').style.display = 'none';
-            document.getElementById('resourceLoading').style.display = 'none';
-            document.getElementById('summaryContent').style.display = 'block';
-            document.getElementById('reportsContent').style.display = 'block';
-            document.getElementById('statusContent').style.display = 'block';
-            document.getElementById('resourceContent').style.display = 'block';
-          }
-        });
-    }
-    
-    function parseCSV(csv) {
-      const lines = [];
-      let currentLine = [];
-      let inQuotes = false;
-      let currentField = '';
-      
-      for (let i = 0; i < csv.length; i++) {
-        const char = csv[i];
-        
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          currentLine.push(currentField.trim());
-          currentField = '';
-        } else if (char === '\n' && !inQuotes) {
-          currentLine.push(currentField.trim());
-          lines.push(currentLine);
-          currentLine = [];
-          currentField = '';
-        } else {
-          currentField += char;
-        }
-      }
-      
-      if (currentField.trim() !== '' || currentLine.length > 0) {
-        currentLine.push(currentField.trim());
-        lines.push(currentLine);
-      }
-      
-      if (lines.length === 0) return [];
-      
-      const headers = lines[0];
-      const result = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        const obj = {};
-        for (let j = 0; j < headers.length; j++) {
-          obj[headers[j]] = lines[i][j] || '';
-        }
-        result.push(obj);
-      }
-      
-      return result;
-    }
-    
-    function parseSheetDate(dateString) {
-      if (!dateString) return null;
-      
-      const months = {
-        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-      };
-      
-      const mmmFormat = dateString.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
-      if (mmmFormat) {
-        const day = parseInt(mmmFormat[1], 10);
-        const month = months[mmmFormat[2]];
-        const year = parseInt(mmmFormat[3], 10);
-        return new Date(year, month, day);
-      }
-      
-      const yyyyFormat = dateString.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-      if (yyyyFormat) {
-        const year = parseInt(yyyyFormat[1], 10);
-        const month = parseInt(yyyyFormat[2], 10) - 1;
-        const day = parseInt(yyyyFormat[3], 10);
-        return new Date(year, month, day);
-      }
-      
-      const ddmmFormat = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (ddmmFormat) {
-        const day = parseInt(ddmmFormat[1], 10);
-        const month = parseInt(ddmmFormat[2], 10) - 1;
-        const year = parseInt(ddmmFormat[3], 10);
-        return new Date(year, month, day);
-      }
-      
-      return null;
-    }
-    
-    function formatDateForComparison(date) {
-      if (!date) return '';
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-    
-    function groupDataByProject(data, dateKey, areaFilter = 'all', disciplineFilter = 'all', wiFilter = '') {
-      const grouped = {};
-      const uniqueCrewIds = new Set();
-      
-      data.forEach(row => {
-        const rowDate = parseSheetDate(row.DATE);
-        if (!rowDate) return;
-        
-        const formattedRowDate = formatDateForComparison(rowDate);
-        if (formattedRowDate !== dateKey) return;
-        
-        if (areaFilter !== 'all' && row['AREA / BLOCK'] !== areaFilter) return;
-        if (disciplineFilter !== 'all' && row['DISCIPLINE'] !== disciplineFilter) return;
-        if (wiFilter && row['WI NO'] && !row['WI NO'].toLowerCase().includes(wiFilter.toLowerCase())) return;
-        
-        const key = `${row['FOREMAN ID']}|${row['WI NO']}|${row['AREA / BLOCK']}|${row['DISCIPLINE']}`;
-        if (!grouped[key]) {
-          grouped[key] = {
-            id: row['FOREMAN ID'] || '-',
-            crewLead: row['FOREMAN NAME'] || '-',
-            projects: row['WI NO'] || '-',
-            area: row['AREA / BLOCK'] || 'Unknown',
-            discipline: row['DISCIPLINE'] || '-',
-            permits: new Set(),
-            resources: new Set(),
-            foremen: new Set(),
-            details: {
-              'DESCRIPTION OF WORK': row['DESCRIPTION OF WORK'] || '',
-              'PERMIT NUMBER': row['PERMIT NUMBER'] || '',
-              'VALIDATION TIME': row['VALIDATION TIME'] || '',
-              'SUSPENSION TIME': row['SUSPENSION TIME'] || '',
-              'PROGRESS': row['PROGRESS'] || ''
-            },
-            resourceDetails: []
-          };
-        }
-        
-        if (row['PERMIT NUMBER']) {
-          grouped[key].permits.add(row['PERMIT NUMBER']);
-        }
-        
-        if (row['RESOURCE ID']) {
-          grouped[key].resources.add(row['RESOURCE ID']);
-          uniqueCrewIds.add(row['RESOURCE ID']);
-          grouped[key].resourceDetails.push({
-            'RESOURCE ID': row['RESOURCE ID'],
-            'RESOURCE DESIGNATION': row['RESOURCE DESIGNATION'] || '-',
-            'MANPOWER / EQUIPMENT': row['MANPOWER / EQUIPMENT'] || '',
-            'TIME-IN': row['TIME-IN'] || '-',
-            'TIME-OUT': row['TIME-OUT'] || '-'
-          });
-        }
-        
-        if (row['FOREMAN ID']) {
-          grouped[key].foremen.add(row['FOREMAN ID']);
-        }
-      });
-      
-      return { grouped, totalCrewSize: uniqueCrewIds.size };
-    }
-    
-    function applyFilters() {
-      const selectedDate = document.getElementById('reportDate').valueAsDate;
-      const selectedArea = document.getElementById('areaSelect').value;
-      const selectedDiscipline = document.getElementById('disciplineSelect').value;
-      const wiSearch = document.getElementById('wiInput').value.trim();
-      
-      if (!selectedDate) return;
-      
-      const formattedSelectedDate = formatDateForComparison(selectedDate);
-      
-      const filteredData = allData.filter(row => {
-        if (!row.DATE) return false;
-        
-        const rowDate = parseSheetDate(row.DATE);
-        if (!rowDate) return false;
-        const formattedRowDate = formatDateForComparison(rowDate);
-        if (formattedRowDate !== formattedSelectedDate) return false;
-        
-        if (selectedArea !== 'all' && row['AREA / BLOCK'] !== selectedArea) return false;
-        if (selectedDiscipline !== 'all' && row['DISCIPLINE'] !== selectedDiscipline) return false;
-        if (wiSearch && row['WI NO'] && !row['WI NO'].toLowerCase().includes(wiSearch.toLowerCase())) return false;
-        
-        return true;
-      });
-      
-      displayData(filteredData, formattedSelectedDate, selectedArea, selectedDiscipline, wiSearch);
-    }
-    
-    function displayData(data, dateKey, selectedArea, selectedDiscipline, wiSearch) {
-      const container = document.getElementById('reportContainer');
-      const summaryContainer = document.getElementById('dailySummaryContainer');
-      
-      if (data.length === 0) {
-        container.innerHTML = '<p class="no-data">No records found for the selected filters.</p>';
-        summaryContainer.innerHTML = '';
-        return;
-      }
-      
-      const { grouped, totalCrewSize } = groupDataByProject(data, dateKey, selectedArea, selectedDiscipline, wiSearch);
-      
-      const areaSummary = {};
-      Object.values(grouped).forEach(group => {
-        const area = group.area;
-        if (!areaSummary[area]) {
-          areaSummary[area] = {
-            permits: new Set(),
-            crewSize: new Set(),
-            foremen: new Set()
-          };
-        }
-        
-        group.permits.forEach(permit => areaSummary[area].permits.add(permit));
-        group.resources.forEach(crew => areaSummary[area].crewSize.add(crew));
-        group.foremen.forEach(foreman => areaSummary[area].foremen.add(foreman));
-      });
-      
-      const selectedDate = document.getElementById('reportDate').valueAsDate;
-      const formattedDate = formatDateForDisplay(selectedDate);
-      
-      let summaryHtml = `
-        <h3>Daily Summary for ${formattedDate}</h3>
-        <div class="stats-grid">
-      `;
-      
-      Object.entries(areaSummary).forEach(([area, stats]) => {
-        summaryHtml += `
-          <div class="stat-card">
-            <div class="stat-label">${area}</div>
-            <div class="stat-value">${stats.crewSize.size} Crew</div>
-            <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--gray-600);">
-              <div><i class="fas fa-user-shield" style="margin-right: 0.5rem;"></i> ${stats.foremen.size} Foremen</div>
-              <div><i class="fas fa-file-alt" style="margin-right: 0.5rem;"></i> ${stats.permits.size} Permits</div>
-            </div>
-          </div>
-        `;
-      });
-      
-      const totalPermits = Object.values(areaSummary).reduce((sum, area) => sum + area.permits.size, 0);
-      const totalForemen = Object.values(areaSummary).reduce((sum, area) => sum + area.foremen.size, 0);
-      
-      summaryHtml += `
-          <div class="stat-card" style="background-color: #f0f5ff;">
-            <div class="stat-label">TOTAL</div>
-            <div class="stat-value">${totalCrewSize} Crew</div>
-            <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--gray-600);">
-              <div><i class="fas fa-user-shield" style="margin-right: 0.5rem;"></i> ${totalForemen} Foremen</div>
-              <div><i class="fas fa-file-alt" style="margin-right: 0.5rem;"></i> ${totalPermits} Permits</div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      summaryContainer.innerHTML = summaryHtml;
-      
-      let html = '';
-      let groupCounter = 1;
-      
-      Object.values(grouped).forEach(group => {
-        const manpowerCount = group.resourceDetails.filter(r => 
-          r['MANPOWER / EQUIPMENT'].toLowerCase() === 'manpower'
-        ).length;
-        
-        const equipmentCount = group.resourceDetails.filter(r => 
-          r['MANPOWER / EQUIPMENT'].toLowerCase() === 'equipment'
-        ).length;
-        
-        const progressLines = group.details['PROGRESS'].replace(/"/g, '').split('\n').map(line => {
-          const [description, unit] = line.split(' = ');
-          return { description, unit };
-        });
-        
-        html += `
-          <div class="work-group">
-            <div class="work-group-header">
-              <span class="work-group-title">Work Progress Report - Group #${groupCounter}</span>
-              <span class="work-group-id">WI NO: ${group.projects}</span>
-            </div>
-            
-            <div class="work-description">${group.details['DESCRIPTION OF WORK'].replace(/"/g, '')}</div>
-            
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-label">Foreman ID</div>
-                <div class="stat-value">${group.id}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Foreman Name</div>
-                <div class="stat-value">${group.crewLead}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Area/Block</div>
-                <div class="stat-value">${group.area}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Permit Number</div>
-                <div class="stat-value">${group.details['PERMIT NUMBER']}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Work Hours</div>
-                <div class="stat-value">${group.details['VALIDATION TIME']} to ${group.details['SUSPENSION TIME']}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Manpower</div>
-                <div class="stat-value">${manpowerCount}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Equipment</div>
-                <div class="stat-value">${equipmentCount}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Crew Size</div>
-                <div class="stat-value">${group.resources.size}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Discipline</div>
-                <div class="stat-value">${group.discipline}</div>
-              </div>
-            </div>
-            
-            <div class="card">
-              <h3>Progress Details</h3>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${progressLines.map((line, index) => `
-                    <tr>
-                      <td>${index + 1}</td>
-                      <td>${line.description || '-'}</td>
-                      <td>${line.unit || '-'}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-            
-            <div class="card">
-              <h3>Resource Details</h3>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Resource ID</th>
-                    <th>Designation</th>
-                    <th>Type</th>
-                    <th>Time-In</th>
-                    <th>Time-Out</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${group.resourceDetails.map((resource, index) => `
-                    <tr>
-                      <td>${index + 1}</td>
-                      <td>${resource['RESOURCE ID']}</td>
-                      <td>${resource['RESOURCE DESIGNATION']}</td>
-                      <td>${resource['MANPOWER / EQUIPMENT']}</td>
-                      <td>${resource['TIME-IN']}</td>
-                      <td>${resource['TIME-OUT']}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        `;
-        groupCounter++;
-      });
-      
-      container.innerHTML = html;
-    }
-    
-    function updateSummaryCharts() {
-      if (allData.length === 0) return;
-      
-      const startDate = document.getElementById('summaryStartDate').valueAsDate;
-      const endDate = document.getElementById('summaryEndDate').valueAsDate;
-      
-      if (!startDate || !endDate) return;
-      
-      const datesInRange = getDatesInRange(startDate, endDate);
-      const areaCrewData = {};
-      const areaTrendData = {};
-      const workGroupData = {};
-      const recentActivityData = {};
-      
-      datesInRange.forEach(date => {
-        const dateKey = formatDateForComparison(date);
-        areaTrendData[dateKey] = {};
-        recentActivityData[dateKey] = {
-          date: dateKey,
-          foremen: new Set(),
-          crewSize: new Set(),
-          active: false
-        };
-        
-        const { grouped } = groupDataByProject(allData, dateKey);
-        
-        Object.values(grouped).forEach(group => {
-          const area = group.area;
-          if (!areaCrewData[area]) {
-            areaCrewData[area] = {
-              totalCrew: 0,
-              dates: {},
-              foremen: new Set()
-            };
-          }
-          if (!areaCrewData[area].dates[dateKey]) {
-            areaCrewData[area].dates[dateKey] = {
-              crewSize: new Set(),
-              foremen: new Set()
-            };
-          }
-          
-          group.resources.forEach(crew => {
-            areaCrewData[area].dates[dateKey].crewSize.add(crew);
-            recentActivityData[dateKey].crewSize.add(crew);
-          });
-          group.foremen.forEach(foreman => {
-            areaCrewData[area].dates[dateKey].foremen.add(foreman);
-            areaCrewData[area].foremen.add(foreman);
-            recentActivityData[dateKey].foremen.add(foreman);
-          });
-          
-          if (!areaTrendData[dateKey][area]) {
-            areaTrendData[dateKey][area] = 0;
-          }
-          areaTrendData[dateKey][area] += group.resources.size;
-          
-          const workGroupKey = `${group.projects} - ${area}`;
-          if (!workGroupData[workGroupKey]) {
-            workGroupData[workGroupKey] = {
-              crewSize: new Set(),
-              area: area,
-              wiNo: group.projects
-            };
-          }
-          group.resources.forEach(crew => workGroupData[workGroupKey].crewSize.add(crew));
-          
-          recentActivityData[dateKey].active = true;
-        });
-      });
-      
-      const crewAllocationLabels = datesInRange.map(date => formatDateForDisplay(date));
-      const crewAllocationDatasets = [];
-      
-      const areasByCrewSize = Object.keys(areaCrewData)
-        .map(area => ({
-          name: area,
-          total: Object.keys(areaCrewData[area].dates)
-            .reduce((sum, date) => sum + areaCrewData[area].dates[date].crewSize.size, 0)
-        }))
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 5);
-      
-      const colors = [
-        'rgba(67, 97, 238, 0.8)',
-        'rgba(103, 58, 183, 0.8)',
-        'rgba(76, 175, 80, 0.8)',
-        'rgba(248, 150, 30, 0.8)',
-        'rgba(233, 30, 99, 0.8)'
-      ];
-      
-      areasByCrewSize.forEach((area, index) => {
-        const areaData = datesInRange.map(date => {
-          const dateKey = formatDateForComparison(date);
-          return areaCrewData[area.name].dates[dateKey] ? 
-            areaCrewData[area.name].dates[dateKey].crewSize.size : 0;
-        });
-        
-        crewAllocationDatasets.push({
-          label: area.name,
-          data: areaData,
-          backgroundColor: colors[index],
-          borderColor: colors[index],
-          borderWidth: 1
-        });
-      });
-      
-      const trendLabels = datesInRange.map(date => formatDateForDisplay(date));
-      const trendDatasets = [];
-      
-      areasByCrewSize.forEach((area, index) => {
-        const trendData = datesInRange.map(date => {
-          const dateKey = formatDateForComparison(date);
-          return areaTrendData[dateKey][area.name] || 0;
-        });
-        
-        trendDatasets.push({
-          label: area.name,
-          data: trendData,
-          borderColor: colors[index],
-          backgroundColor: colors[index],
-          borderWidth: 2,
-          tension: 0.3,
-          fill: false
-        });
-      });
-      
-      const workGroupLabels = [];
-      const workGroupDatasets = [];
-      const topWorkGroups = Object.keys(workGroupData)
-        .map(group => ({
-          name: group,
-          total: workGroupData[group].crewSize.size
-        }))
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 5);
-      
-      const workGroupDataValues = topWorkGroups.map(group => group.total);
-      workGroupLabels.push(...topWorkGroups.map(group => group.name));
-      
-      workGroupDatasets.push({
-        label: 'Crew Utilization',
-        data: workGroupDataValues,
-        backgroundColor: colors,
-        borderColor: colors,
-        borderWidth: 1
-      });
-      
-      const recentActivityHtml = Object.values(recentActivityData)
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map(day => `
-          <tr>
-            <td>${formatDateForDisplay(new Date(day.date))}</td>
-            <td>${day.foremen.size}</td>
-            <td>${day.crewSize.size}</td>
-            <td><span class="status-indicator ${day.active ? 'status-active' : 'status-inactive'}"></span>
-              ${day.active ? 'Active' : 'No Activity'}</td>
-          </tr>
-        `).join('');
-      document.getElementById('recentActivity').innerHTML = recentActivityHtml;
-      
-      if (charts.crewAllocationChart) charts.crewAllocationChart.destroy();
-      if (charts.crewTrendChart) charts.crewTrendChart.destroy();
-      if (charts.workGroupUtilizationChart) charts.workGroupUtilizationChart.destroy();
-      
-      const ctx1 = document.getElementById('crewAllocationChart').getContext('2d');
-      charts.crewAllocationChart = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: crewAllocationLabels,
-          datasets: crewAllocationDatasets
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              stacked: true,
-              title: {
-                display: true,
-                text: 'Date'
-              }
-            },
-            y: {
-              stacked: true,
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Crew Size'
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'bottom',
-            }
-          }
-        }
-      });
-      
-      const ctx2 = document.getElementById('crewTrendChart').getContext('2d');
-      charts.crewTrendChart = new Chart(ctx2, {
-        type: 'line',
-        data: {
-          labels: trendLabels,
-          datasets: trendDatasets
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Crew Size'
-              }
-            },
-            x: {
-              title: {
-                display: true,
-                text: 'Date'
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'bottom',
-            }
-          }
-        }
-      });
-      
-      const ctx3 = document.getElementById('workGroupUtilizationChart').getContext('2d');
-      charts.workGroupUtilizationChart = new Chart(ctx3, {
-        type: 'bar',
-        data: {
-          labels: workGroupLabels,
-          datasets: workGroupDatasets
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: 'Work Group'
-              }
-            },
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Total Crew Utilization'
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              position: 'bottom',
-            }
-          }
-        }
-      });
-    }
+  });
 
-    function updateStatusTable() {
-      const selectedDate = document.getElementById('statusDate').valueAsDate;
-      const selectedArea = document.getElementById('statusAreaSelect').value;
-      if (!selectedDate) return;
+  document.getElementById('submitButton').addEventListener('click', validateAndSubmit);
+  document.getElementById('clearStorageButton').addEventListener('click', clearStoredData);
 
-      const formattedSelectedDate = formatDateForComparison(selectedDate);
-      const formattedDisplayDate = formatDateForDisplay(selectedDate);
+  updateProgress();
+});
 
-      document.getElementById('statusTableTitle').textContent = `Active Projects on ${formattedDisplayDate}`;
-
-      const { grouped, totalCrewSize } = groupDataByProject(allData, formattedSelectedDate, selectedArea);
-
-      if (Object.keys(grouped).length === 0) {
-        document.getElementById('totalProjects').textContent = '0';
-        document.getElementById('totalCrewSize').textContent = '0';
-        document.getElementById('statusTableBody').innerHTML = 
-          '<tr><td colspan="7" class="no-data">No records found for the selected date and area.</td></tr>';
-        return;
-      }
-
-      const statusData = Object.values(grouped).map((group, index) => ({
-        slNo: index + 1,
-        id: group.id,
-        crewLead: group.crewLead,
-        projects: group.projects,
-        area: group.area,
-        crewSize: group.resources.size,
-        discipline: group.discipline
-      }));
-
-      document.getElementById('totalProjects').textContent = statusData.length;
-      document.getElementById('totalCrewSize').textContent = totalCrewSize;
-
-      const statusHtml = statusData.map(item => `
-        <tr>
-          <td>${item.slNo}</td>
-          <td>${item.id}</td>
-          <td>${item.crewLead}</td>
-          <td>${item.projects}</td>
-          <td>${item.area}</td>
-          <td>${item.crewSize}</td>
-          <td>${item.discipline}</td>
-        </tr>
-      `).join('');
-
-      document.getElementById('statusTableBody').innerHTML = statusHtml;
-    }
-    
-    function updateResourceTables() {
-      const selectedDate = document.getElementById('resourceDate').valueAsDate;
-      const selectedArea = document.getElementById('resourceAreaSelect').value;
-      if (!selectedDate) return;
-
-      const formattedSelectedDate = formatDateForComparison(selectedDate);
-      const formattedDisplayDate = formatDateForDisplay(selectedDate);
-
-      document.getElementById('resourceTableTitle').textContent = `Resources on ${formattedDisplayDate}`;
-
-      const { grouped } = groupDataByProject(allData, formattedSelectedDate, selectedArea);
-
-      if (Object.keys(grouped).length === 0) {
-        document.getElementById('totalManpower').textContent = '0';
-        document.getElementById('totalEquipment').textContent = '0';
-        document.getElementById('totalNotFound').textContent = '0';
-        document.getElementById('manpowerTableBody').innerHTML = 
-          '<tr><td colspan="6" class="no-data">No manpower records found.</td></tr>';
-        document.getElementById('equipmentTableBody').innerHTML = 
-          '<tr><td colspan="6" class="no-data">No equipment records found.</td></tr>';
-        document.getElementById('notFoundTableBody').innerHTML = 
-          '<tr><td colspan="6" class="no-data">No not found records found.</td></tr>';
-        return;
-      }
-
-      let manpowerResources = [];
-      let equipmentResources = [];
-      let notFoundResources = [];
-      let manpowerCount = 0;
-      let equipmentCount = 0;
-      let notFoundCount = 0;
-
-      Object.values(grouped).forEach(group => {
-        group.resourceDetails.forEach(resource => {
-          const resourceEntry = {
-            resourceId: resource['RESOURCE ID'],
-            designation: resource['RESOURCE DESIGNATION'],
-            project: group.projects,
-            area: group.area,
-            foreman: group.crewLead
-          };
-
-          const type = resource['MANPOWER / EQUIPMENT'].toLowerCase();
-          if (type === 'manpower') {
-            manpowerResources.push(resourceEntry);
-            manpowerCount++;
-          } else if (type === 'equipment') {
-            equipmentResources.push(resourceEntry);
-            equipmentCount++;
-          } else {
-            notFoundResources.push(resourceEntry);
-            notFoundCount++;
-          }
-        });
-      });
-
-      document.getElementById('totalManpower').textContent = manpowerCount;
-      document.getElementById('totalEquipment').textContent = equipmentCount;
-      document.getElementById('totalNotFound').textContent = notFoundCount;
-
-      const manpowerHtml = manpowerResources.map((resource, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${resource.resourceId}</td>
-          <td>${resource.designation}</td>
-          <td>${resource.project}</td>
-          <td>${resource.area}</td>
-          <td>${resource.foreman}</td>
-        </tr>
-      `).join('');
-
-      const equipmentHtml = equipmentResources.map((resource, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${resource.resourceId}</td>
-          <td>${resource.designation}</td>
-          <td>${resource.project}</td>
-          <td>${resource.area}</td>
-          <td>${resource.foreman}</td>
-        </tr>
-      `).join('');
-
-      const notFoundHtml = notFoundResources.map((resource, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${resource.resourceId}</td>
-          <td>${resource.designation}</td>
-          <td>${resource.project}</td>
-          <td>${resource.area}</td>
-          <td>${resource.foreman}</td>
-        </tr>
-      `).join('');
-
-      document.getElementById('manpowerTableBody').innerHTML = manpowerHtml || 
-        '<tr><td colspan="6" class="no-data">No manpower records found.</td></tr>';
-      document.getElementById('equipmentTableBody').innerHTML = equipmentHtml || 
-        '<tr><td colspan="6" class="no-data">No equipment records found.</td></tr>';
-      document.getElementById('notFoundTableBody').innerHTML = notFoundHtml || 
-        '<tr><td colspan="6" class="no-data">No not found records found.</td></tr>';
-    }
-    
-    function getDatesInRange(startDate, endDate) {
-      const dates = [];
-      let currentDate = new Date(startDate);
-      
-      while (currentDate <= endDate) {
-        dates.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-      
-      return dates;
-    }
-    
-    function getLastNDays(n) {
-      const dates = [];
-      for (let i = n - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        dates.push(formatDateForComparison(date));
-      }
-      return dates;
-    }
-    
-    function parseTime(timeString) {
-      if (!timeString) return null;
-      
-      const match = timeString.match(/^(\d{1,2}):(\d{2})$/);
-      if (!match) return null;
-      
-      const hours = parseInt(match[1], 10);
-      const minutes = parseInt(match[2], 10);
-      
-      const date = new Date();
-      date.setHours(hours, minutes, 0, 0);
-      return date;
-    }
-  </script>
+// Spinner animation
+const spinStyle = document.createElement('style');
+spinStyle.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(spinStyle);
+</script>
 </body>
 </html>
